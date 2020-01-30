@@ -6,8 +6,8 @@
 #include <string.h>
 #include <time.h>
 
-//must create a room directory called shoemakd.rooms<PROCESS ID OF ROOMS>
-//Must then create 7 different room files
+/*must create a room directory called shoemakd.rooms<PROCESS ID OF ROOMS>*/
+/*Must then create 7 different room files*/
 
 #define MAX_CONS (int)6
 #define NUM_OF_ROOMS (int)7
@@ -96,13 +96,13 @@ void createRoom(){
   strcpy(listOfRooms[6].rName, "Drug");
 
 
-  listOfRooms[0].numCons = randNumGen(6,3);
-  listOfRooms[1].numCons = randNumGen(6,3);
-  listOfRooms[2].numCons = randNumGen(6,3);  /* put random number of connections into each room's cons variable*/
-  listOfRooms[3].numCons = randNumGen(6,3);
-  listOfRooms[4].numCons = randNumGen(6,3);
-  listOfRooms[5].numCons = randNumGen(6,3);
-  listOfRooms[6].numCons = randNumGen(6,3);
+  listOfRooms[0].numCons = 0;
+  listOfRooms[1].numCons = 0;
+  listOfRooms[2].numCons = 0;  /*initially each node will have no connections.  Will build up later*/
+  listOfRooms[3].numCons = 0;
+  listOfRooms[4].numCons = 0;
+  listOfRooms[5].numCons = 0;
+  listOfRooms[6].numCons = 0;
 
   int i; /*use for for loop later*/
 
@@ -140,8 +140,6 @@ int main(){
 
 
   createDirAndFiles();  /*create unfilled directory.  save name for creating files in that directory*/
-  int number = randNumGen(6,3);
-  /*printf("%d", number);*/
 
   printf("\n");
 
