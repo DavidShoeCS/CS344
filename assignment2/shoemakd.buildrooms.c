@@ -42,38 +42,6 @@ void createDirAndFiles(){
   printf("\n"); /* easier readability from terminal */
 
 
-  /*
-  char filePath[100]; /*create space for filepath*/
-  /*char filePath2[100];
-  char filePath3[100];
-  char filePath4[100];
-  char filePath5[100];
-  char filePath6[100];
-  char filePath7[100];
-
-  sprintf(filePath, "./%s/Dungeon_room",directoryName);  /*create file path and use it for the directory and file name we want to create*/
-  /*sprintf(filePath2, "./%s/Testing_room",directoryName);
-  sprintf(filePath3, "./%s/Drug_room",directoryName);
-  sprintf(filePath4, "./%s/Clinic_room",directoryName);
-  sprintf(filePath5, "./%s/Theatre_room",directoryName);
-  sprintf(filePath6, "./%s/Office_room",directoryName);
-  sprintf(filePath7, "./%s/Puzzle_room",directoryName);
-
-  FILE *outFile = fopen(filePath, "w");  /*create the file within directory*/
-  /*fclose(outFile);
-  FILE *outFile2 = fopen(filePath2, "w");
-  fclose(outFile2);
-  FILE *outFile3 = fopen(filePath3, "w");
-  fclose(outFile3);
-  FILE *outFile4 = fopen(filePath4, "w");
-  fclose(outFile4);
-  FILE *outFile5 = fopen(filePath5, "w");
-  fclose(outFile5);
-  FILE *outFile6 = fopen(filePath6, "w");
-  fclose(outFile6);
-  FILE *outFile7 = fopen(filePath7, "w");
-  fclose(outFile7);
-*/
 }
 
 
@@ -81,12 +49,13 @@ typedef struct {  /*Structure of a room.  Holds the values a room has*/
   char rName[MAX_NAME_LENGTH];
   int numCons;
   char rType; /* s for start, m for middle room, e for end room.*/
-  struct roomNode *cons[MAX_CONS];
+  int cons[MAX_CONS];
 
 }roomNode;
 
-void createRoom(){
-  roomNode listOfRooms[NUM_OF_ROOMS];  /*create a list of room nodes*/
+roomNode* createRoom(){
+  srand(time(0)); /*seed for random number generator function*/
+  roomNode* listOfRooms = malloc(NUM_OF_ROOMS * sizeof(roomNode));  /*create a list of room nodes*/
   strcpy(listOfRooms[0].rName, "Office");
   strcpy(listOfRooms[1].rName, "Dungeon");
   strcpy(listOfRooms[2].rName, "Clinic");    /* put names of the rooms into the list of rooms, for room name*/
@@ -109,7 +78,8 @@ void createRoom(){
   int randomRoomNumberEnd;
   int randomRoomNumberStart;
 
-  randomRoomNumberStart = randNumGen(6,0);
+  randomRoomNumberStart = randNumGen(6,1);
+
   listOfRooms[randomRoomNumberStart].rType = 's';  /* set start room to a random number in the range of room numbers*/
   randomRoomNumberEnd = randNumGen(6,0);
 
@@ -124,26 +94,28 @@ void createRoom(){
 
     }
   }
-  /*helper to see the rTypes.  DELETE BEFORE FINAL SUBMISSION**************************************/
-  for(i=0; i<7; i++){
-    printf("%c\n", listOfRooms[i].rType);
-  }
 
-
+  return listOfRooms; /*return array of rooms*/
 }
 
+roomNode* connectNodes(roomNode *listOfRooms);
+int ConnectionValid(roomNode room, int rIndex);
+
+int isGraphComplete(roomNode* listOfRooms);
 
 
 /******************MAIN AREA**************/
 int main(){
-  srand(time(0)); /*seed for random number generator function*/
-
 
   createDirAndFiles();  /*create unfilled directory.  save name for creating files in that directory*/
 
   printf("\n");
 
-  createRoom();
+  //createRoom();
+
+  roomNode *roomList = createRoom();
+  connectNodes(roomList);
+
 
 return 0;
 }
@@ -154,4 +126,74 @@ int randNumGen(int upperBound, int lowerBound){  /* random number generator.  us
 
   int num = (rand() % (upperBound - lowerBound + 1)) + lowerBound;
   return num;
+}
+
+/*connect the nodes until they satisfty the requirement of having 3-6 connections per node*/
+roomNode* connectNodes(roomNode *listOfRooms){
+  while(doesGraphSatisfy(listOfRooms) == 0){
+    int k;
+    for(k=0;k<=MAX_CONS; k++){
+      int randomIndex = randNumGen(6,0); /*while the connection isnt valid, make a new random index to find a random room to connect to*/
+      while( ConnectionValid(listOfRooms[k],randomIndex) == 1 || listOfRooms[randomIndex].numCons >= MAX_CONS || randomIndex == k){
+
+
+        if (listOfRooms[k].numCons >= MAX_CONS){
+            break;
+          }
+        randomIndex = randNumGen(6,0);
+      }
+        printf("[%d] Connecting %s with %s\n", k, listOfRooms[k].rName, listOfRooms[randomIndex].rName);
+
+        listOfRooms[k].cons[listOfRooms[k].numCons] = randomIndex;
+        listOfRooms[randomIndex].cons[listOfRooms[randomIndex].numCons] = k;
+        listOfRooms[k].numCons++;
+        listOfRooms[randomIndex].numCons++;
+
+        if(doesGraphSatisfy(listOfRooms)==0){
+          printf("break here\n");
+          break;
+        }
+
+    }
+
+
+
+}
+int i;
+int j;
+for(i=0;i<NUM_OF_ROOMS;i++){
+   printf("Name: %s\nType: %c\nnoC: %d\n", listOfRooms[i].rName, listOfRooms[i].rType, listOfRooms[i].numCons);
+   printf("connections: ");
+   for (j = 0; j < listOfRooms[i].numCons; j++) {
+          printf("%s, ", listOfRooms[listOfRooms[i].cons[j]].rName);
+      }
+      printf("\n\n");
+  }
+
+}
+
+/*Helper functon to see if the nodes fill the requirements on number of connections. Returns 1 or 0.  Bool. */
+int doesGraphSatisfy(roomNode* listOfRooms){
+
+  int l; /* loop iteration */
+
+  for(l=0;l<NUM_OF_ROOMS;l++){
+    if(listOfRooms[l].numCons < 3){  /* does the number of connections for each node match the requirements */
+      return 0;
+    }
+    return 1;
+  }
+}
+
+/*check if the room we want is already connected to the random indexed room.  1 if it is and 0 if it is not. bool!*/
+int ConnectionValid(roomNode room, int rIndex){
+  int m;
+  for(m=0; m <room.numCons; m++){
+    if(room.cons[m]==rIndex){
+      return 1;
+    }
+    return 0;
+  }
+
+
 }
