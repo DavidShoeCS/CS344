@@ -14,7 +14,6 @@
 #define MIN_CONS (int)3
 #define MAX_NAME_LENGTH (int)9
 
-int randNumGen(int upper, int lower);
 
 
 /*
@@ -45,13 +44,14 @@ void createDirAndFiles(){
 }
 
 
-typedef struct {  /*Structure of a room.  Holds the values a room has*/
+typedef struct roomNode{  /*Structure of a room.  Holds the values a room has*/
   char rName[MAX_NAME_LENGTH];
   int numCons;
   char rType; /* s for start, m for middle room, e for end room.*/
-  int cons[MAX_CONS];
+  struct roomNode *cons[MAX_CONS];
 
 }roomNode;
+
 
 roomNode* createRoom(){
   srand(time(0)); /*seed for random number generator function*/
@@ -98,25 +98,53 @@ roomNode* createRoom(){
   return listOfRooms; /*return array of rooms*/
 }
 
-roomNode* connectNodes(roomNode *listOfRooms);
-int ConnectionValid(roomNode room, int rIndex);
+void connectNodes(roomNode* room1, roomNode* room2);
 
-int isGraphComplete(roomNode* listOfRooms);
+int ConnectionValid(roomNode* room1, roomNode* room2 );
+int isNodeFull(roomNode* room);
+
+int doesGraphSatisfy(roomNode* listOfRooms);
+
+int randNumGen(int upper, int lower);
 
 
 /******************MAIN AREA**************/
-int main(){
+int main(int argc, char *argv[]){
 
-  createDirAndFiles();  /*create unfilled directory.  save name for creating files in that directory*/
+  /*createDirAndFiles();*/  /*create unfilled directory.  save name for creating files in that directory*/
 
   printf("\n");
 
-  //createRoom();
+ 
 
   roomNode *roomList = createRoom();
-  connectNodes(roomList);
 
 
+  roomNode *x = &roomList[0];
+  roomNode *y = &roomList[1];
+
+  printf("Node x is named: %s\n", x->rName);  /*This works!!! Now need logic to keep connecting.*/
+  printf("Node y is named: %s\n", y->rName);    
+
+
+  ConnectionValid(x,y); /*Works!*/
+
+
+
+
+  /*int j=0;
+  int m=0;
+  for(j=0;j<7;j++){
+    for(m=0;m<7;m++){
+      printf("room %s has connections to: %s",roomList[j]->rName, roomList[j]->cons[m]->rName);
+    }
+  }
+  */
+
+  /*roomNode *x = &roomList[1];
+  roomNode *y = &roomList[2];
+  connectNodes(x, y);
+*/
 return 0;
 }
 /******************END MAIN AREA**************/
@@ -128,47 +156,20 @@ int randNumGen(int upperBound, int lowerBound){  /* random number generator.  us
   return num;
 }
 
-/*connect the nodes until they satisfty the requirement of having 3-6 connections per node*/
-roomNode* connectNodes(roomNode *listOfRooms){
-  while(doesGraphSatisfy(listOfRooms) == 0){
-    int k;
-    for(k=0;k<=MAX_CONS; k++){
-      int randomIndex = randNumGen(6,0); /*while the connection isnt valid, make a new random index to find a random room to connect to*/
-      while( ConnectionValid(listOfRooms[k],randomIndex) == 1 || listOfRooms[randomIndex].numCons >= MAX_CONS || randomIndex == k){
+/*connect two given nodes together*/
+void connectNodes(roomNode* room1, roomNode* room2){
+ 
+
+  /*ConnectionValid(room1, room2);*/
+  room1->cons[room1->numCons] = room2; /*connect 2 room nodes, going both ways.*/
+  room2->cons[room2->numCons] = room1;
+  room1->numCons++;
+  room2->numCons++;
+
+  printf("%s now connects to %s\n ", room1->rName, room1->cons[0]->rName);
 
 
-        if (listOfRooms[k].numCons >= MAX_CONS){
-            break;
-          }
-        randomIndex = randNumGen(6,0);
-      }
-        printf("[%d] Connecting %s with %s\n", k, listOfRooms[k].rName, listOfRooms[randomIndex].rName);
-
-        listOfRooms[k].cons[listOfRooms[k].numCons] = randomIndex;
-        listOfRooms[randomIndex].cons[listOfRooms[randomIndex].numCons] = k;
-        listOfRooms[k].numCons++;
-        listOfRooms[randomIndex].numCons++;
-
-        if(doesGraphSatisfy(listOfRooms)==0){
-          printf("break here\n");
-          break;
-        }
-
-    }
-
-
-
-}
-int i;
-int j;
-for(i=0;i<NUM_OF_ROOMS;i++){
-   printf("Name: %s\nType: %c\nnoC: %d\n", listOfRooms[i].rName, listOfRooms[i].rType, listOfRooms[i].numCons);
-   printf("connections: ");
-   for (j = 0; j < listOfRooms[i].numCons; j++) {
-          printf("%s, ", listOfRooms[listOfRooms[i].cons[j]].rName);
-      }
-      printf("\n\n");
-  }
+  
 
 }
 
@@ -178,20 +179,45 @@ int doesGraphSatisfy(roomNode* listOfRooms){
   int l; /* loop iteration */
 
   for(l=0;l<NUM_OF_ROOMS;l++){
-    if(listOfRooms[l].numCons < 3){  /* does the number of connections for each node match the requirements */
+    if(listOfRooms[l].numCons < MIN_CONS){  /* does the number of connections for each node match the requirements */
       return 0;
     }
-    return 1;
   }
+  return 1;
 }
 
-/*check if the room we want is already connected to the random indexed room.  1 if it is and 0 if it is not. bool!*/
-int ConnectionValid(roomNode room, int rIndex){
-  int m;
-  for(m=0; m <room.numCons; m++){
-    if(room.cons[m]==rIndex){
-      return 1;
+/*check if the 2 rooms passed in pass all tests to connect them. Return 1 if connection is valid, 0 if not*/
+int ConnectionValid(roomNode* room1, roomNode* room2){
+
+  if(room1 == room2){ /*was the same node passed in?? Don't want that*/
+    printf("Room1 = Room2 problem");
+    return 0;
+  }
+  if(isNodeFull(room1) == 0 || isNodeFull(room2) == 0){
+    printf("node full problem");
+    return 0;
+  }
+  int i;
+  for(i=0;i<room1->numCons;i++){ /*check if room1 is already connected to room2*/
+    
+    if(room1->cons[i] == room2){
+      printf("contains problem");
+      return 0;
     }
+}
+  printf("Made it to return 1!");
+   return 1;
+}
+
+/*return 1 if node can be added to, 0 if node is full*/
+int isNodeFull(roomNode* room){
+  int num;
+  num = room->numCons;
+
+  if (num < MAX_CONS){
+    return 1;
+  }
+  else{
     return 0;
   }
 
