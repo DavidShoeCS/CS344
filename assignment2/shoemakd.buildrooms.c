@@ -115,31 +115,86 @@ int main(int argc, char *argv[]){
 
   printf("\n");
 
- 
+
 
   roomNode *roomList = createRoom();
 
-
+  /*
   roomNode *x = &roomList[0];
   roomNode *y = &roomList[1];
 
-  printf("Node x is named: %s\n", x->rName);  /*This works!!! Now need logic to keep connecting.*/
-  printf("Node y is named: %s\n", y->rName);    
-
-
-  ConnectionValid(x,y); /*Works!*/
+  printf("Node x is named: %s\n", x->rName);
+  printf("Node y is named: %s\n", y->rName);
 
 
 
+  ConnectionValid(x,y);
+  connectNodes(x,y);
+*/
 
-  /*int j=0;
-  int m=0;
-  for(j=0;j<7;j++){
-    for(m=0;m<7;m++){
-      printf("room %s has connections to: %s",roomList[j]->rName, roomList[j]->cons[m]->rName);
-    }
+/*start at room one, connect to random room....*/
+
+
+  roomNode *room1;
+  roomNode *room2;
+  int r1Index = randNumGen(6,0);
+  int r2Index = randNumGen(6,0);
+
+  while(r1Index == r2Index){
+    r1Index = randNumGen(6,0);
+    r2Index = randNumGen(6,0);  /* keep going through loop until the rooms will be different.*/
   }
-  */
+
+  room1 = &roomList[r1Index];
+  room2 = &roomList[r2Index];
+
+  while(isNodeFull(room1)==0 || isNodeFull(room2)==0){ /*If one of the nodes if full, keep trying with random rooms*/
+    r1Index = randNumGen(6,0);
+    r2Index = randNumGen(6,0);
+
+    room1 = &roomList[r1Index];
+    room2 = &roomList[r2Index];
+  }
+
+  if(ConnectionValid(room1, room2) == 1){
+    connectNodes(room1,room2);
+  }
+
+  printf("\n------\n");
+
+  /*NEXT STEP!!!!!!! artificially fill the room's numcount to full, then test isgraphvalid() function*/
+
+
+/*
+  printf("Room1: %s\n", room1->rName);
+  printf("Room2: %s\n", room2->rName);
+*/
+
+
+
+
+
+
+
+/*
+  int i;
+  int j;
+  for (i = 0; i < 7; ++i) {
+        printf("Name: %s\nType: %c\nnoC: %d\n", roomList[i].rName, roomList[i].rType, roomList[i].numCons);
+        printf("Connections: ");
+        for (j = 0; j < roomList[i].numCons; j++) {
+            printf("%s, ", roomList->cons[j]->rName);
+        }
+        printf("\n\n");
+    }
+
+
+*/
+
+
+
+
+
 
   /*roomNode *x = &roomList[1];
   roomNode *y = &roomList[2];
@@ -158,7 +213,7 @@ int randNumGen(int upperBound, int lowerBound){  /* random number generator.  us
 
 /*connect two given nodes together*/
 void connectNodes(roomNode* room1, roomNode* room2){
- 
+
 
   /*ConnectionValid(room1, room2);*/
   room1->cons[room1->numCons] = room2; /*connect 2 room nodes, going both ways.*/
@@ -166,10 +221,10 @@ void connectNodes(roomNode* room1, roomNode* room2){
   room1->numCons++;
   room2->numCons++;
 
-  printf("%s now connects to %s\n ", room1->rName, room1->cons[0]->rName);
+  printf("\n%s now connects to %s\n", room1->rName, room1->cons[0]->rName);
 
 
-  
+
 
 }
 
@@ -194,18 +249,18 @@ int ConnectionValid(roomNode* room1, roomNode* room2){
     return 0;
   }
   if(isNodeFull(room1) == 0 || isNodeFull(room2) == 0){
-    printf("node full problem");
+    printf("\nnode full problem\n");
     return 0;
   }
   int i;
   for(i=0;i<room1->numCons;i++){ /*check if room1 is already connected to room2*/
-    
+
     if(room1->cons[i] == room2){
-      printf("contains problem");
+      printf("\ncontains problem\n");
       return 0;
     }
 }
-  printf("Made it to return 1!");
+  printf("\nMade it to return 1!\n");
    return 1;
 }
 
@@ -215,7 +270,7 @@ int isNodeFull(roomNode* room){
   num = room->numCons;
 
   if (num < MAX_CONS){
-    return 1;
+    return 1; /*connection is valid*/
   }
   else{
     return 0;
