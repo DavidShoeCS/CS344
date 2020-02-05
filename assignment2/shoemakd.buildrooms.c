@@ -6,8 +6,6 @@
 #include <string.h>
 #include <time.h>
 
-/*must create a room directory called shoemakd.rooms<PROCESS ID OF ROOMS>*/
-/*Must then create 7 different room files*/
 
 #define MAX_CONS (int)6
 #define NUM_OF_ROOMS (int)7
@@ -117,89 +115,61 @@ int main(int argc, char *argv[]){
 
 
 
-  roomNode *roomList = createRoom();
-
-  /*
-  roomNode *x = &roomList[0];
-  roomNode *y = &roomList[1];
-
-  printf("Node x is named: %s\n", x->rName);
-  printf("Node y is named: %s\n", y->rName);
+  roomNode *roomList = createRoom(); /*Create a list of rooms*/
 
 
-
-  ConnectionValid(x,y);
-  connectNodes(x,y);
-*/
-
-/*start at room one, connect to random room....*/
-
-
-  roomNode *room1;
+  roomNode *room1; /*initalize two rooms that we will use to verify and connect*/
   roomNode *room2;
-  int r1Index = randNumGen(6,0);
-  int r2Index = randNumGen(6,0);
 
-  while(r1Index == r2Index){
-    r1Index = randNumGen(6,0);
-    r2Index = randNumGen(6,0);  /* keep going through loop until the rooms will be different.*/
-  }
-
-  room1 = &roomList[r1Index];
-  room2 = &roomList[r2Index];
-
-  while(isNodeFull(room1)==0 || isNodeFull(room2)==0){ /*If one of the nodes if full, keep trying with random rooms*/
-    r1Index = randNumGen(6,0);
-    r2Index = randNumGen(6,0);
-
-    room1 = &roomList[r1Index];
-    room2 = &roomList[r2Index];
-  }
-
-  if(ConnectionValid(room1, room2) == 1){
-    connectNodes(room1,room2);
-  }
 
   printf("\n------\n");
 
-  /*NEXT STEP!!!!!!! artificially fill the room's numcount to full, then test isgraphvalid() function*/
 
+  while(doesGraphSatisfy(roomList) == 0){  /*While each node doesn't have between 3 and 6 rooms in its list*/
+    int r1Index = randNumGen(6,0);
+    int r2Index = randNumGen(6,0);
 
-/*
-  printf("Room1: %s\n", room1->rName);
-  printf("Room2: %s\n", room2->rName);
-*/
-
-
-
-
-
-
-
-/*
-  int i;
-  int j;
-  for (i = 0; i < 7; ++i) {
-        printf("Name: %s\nType: %c\nnoC: %d\n", roomList[i].rName, roomList[i].rType, roomList[i].numCons);
-        printf("Connections: ");
-        for (j = 0; j < roomList[i].numCons; j++) {
-            printf("%s, ", roomList->cons[j]->rName);
-        }
-        printf("\n\n");
+    while(r1Index == r2Index){
+      r1Index = randNumGen(6,0);
+      r2Index = randNumGen(6,0);  /* keep going through loop until the rooms will be different.*/
     }
 
+    room1 = &roomList[r1Index];
+    room2 = &roomList[r2Index];
 
-*/
+    while(isNodeFull(room1)==0 || isNodeFull(room2)==0){ /*If one of the nodes if full, keep trying with random rooms*/
+      r1Index = randNumGen(6,0);
+      r2Index = randNumGen(6,0);
+
+      room1 = &roomList[r1Index];
+      room2 = &roomList[r2Index];   /*Set room1 and room2 nodes to a valid node in our list*/
+    }
+
+    if(ConnectionValid(room1, room2) == 1){ /*If the connection is valid, connect the nodes.*/
+      connectNodes(room1,room2);
+    }
+
+  }
 
 
 
+printf("\n-------------------\n");
 
 
 
-  /*roomNode *x = &roomList[1];
-  roomNode *y = &roomList[2];
-  connectNodes(x, y);
-*/
+int j;                        /*Helper area to print a node and its connections*/
+int i;
+for(i=0; i < NUM_OF_ROOMS; i++){
+
+  printf("\nRoom: %s connects to: ", roomList[i].rName);
+  for(j=0; j<roomList[i].numCons; j++){
+    printf("%s, ", roomList[i].cons[j]->rName);
+  }
+printf("\n");
+
+}
+
+
 return 0;
 }
 /******************END MAIN AREA**************/
@@ -216,10 +186,9 @@ void connectNodes(roomNode* room1, roomNode* room2){
 
 
   /*ConnectionValid(room1, room2);*/
-  room1->cons[room1->numCons] = room2; /*connect 2 room nodes, going both ways.*/
-  room2->cons[room2->numCons] = room1;
-  room1->numCons++;
-  room2->numCons++;
+  room1->cons[room1->numCons++] = room2; /*connect 2 room nodes, going both ways.*/
+  room2->cons[room2->numCons++] = room1;
+
 
   printf("\n%s now connects to %s\n", room1->rName, room1->cons[0]->rName);
 
@@ -235,9 +204,11 @@ int doesGraphSatisfy(roomNode* listOfRooms){
 
   for(l=0;l<NUM_OF_ROOMS;l++){
     if(listOfRooms[l].numCons < MIN_CONS){  /* does the number of connections for each node match the requirements */
+      printf("\nDoes not satisfy");
       return 0;
     }
   }
+  printf("\nDoes satisfy.");
   return 1;
 }
 
