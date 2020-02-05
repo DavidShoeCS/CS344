@@ -11,6 +11,7 @@
 #define NUM_OF_ROOMS (int)7
 #define MIN_CONS (int)3
 #define MAX_NAME_LENGTH (int)9
+const char DIRECTORYNAME[32];
 
 
 
@@ -18,7 +19,7 @@
 Function: CreateDirName.
 create a directory with specific name.  So far it is unfilled
 */
-void createDirAndFiles(){
+void createDir(){
   char directoryName[32]; /*create space for directory directoryName*/
   int PID = getpid();
   char bufferForPID[30]; /*make buffer for use on adding pid to end of string*/
@@ -31,6 +32,7 @@ void createDirAndFiles(){
 
   if(!check){                         /*check if the directory was created successfully*/
     printf("Directory Created!");
+    strcpy(DIRECTORYNAME,directoryName);
   }
   else{
     printf("Directory failed to create");
@@ -66,7 +68,7 @@ roomNode* createRoom(){
   listOfRooms[0].numCons = 0;
   listOfRooms[1].numCons = 0;
   listOfRooms[2].numCons = 0;  /*initially each node will have no connections.  Will build up later*/
-  listOfRooms[3].numCons = 0;
+  listOfRooms[3].numCons = 0;   /*Not the best way to initialize, but hey, it makes it my own.*/
   listOfRooms[4].numCons = 0;
   listOfRooms[5].numCons = 0;
   listOfRooms[6].numCons = 0;
@@ -105,11 +107,15 @@ int doesGraphSatisfy(roomNode* listOfRooms);
 
 int randNumGen(int upper, int lower);
 
+void printRoomsHelper(roomNode *listOfRooms);
+
+void writeToFile(roomNode* myRooms);
+
 
 /******************MAIN AREA**************/
 int main(int argc, char *argv[]){
 
-  /*createDirAndFiles();*/  /*create unfilled directory.  save name for creating files in that directory*/
+  createDir();  /*create unfilled directory.  save name for creating files in that directory*/
 
   printf("\n");
 
@@ -153,21 +159,14 @@ int main(int argc, char *argv[]){
 
 
 
+printf("\n-------------------\n"); /*Help visual of output on*/
+
+printRoomsHelper(roomList);
 printf("\n-------------------\n");
 
+writeToFile(roomList);
 
 
-int j;                        /*Helper area to print a node and its connections*/
-int i;
-for(i=0; i < NUM_OF_ROOMS; i++){
-
-  printf("\nRoom: %s connects to: ", roomList[i].rName);
-  for(j=0; j<roomList[i].numCons; j++){
-    printf("%s, ", roomList[i].cons[j]->rName);
-  }
-printf("\n");
-
-}
 
 
 return 0;
@@ -247,5 +246,78 @@ int isNodeFull(roomNode* room){
     return 0;
   }
 
+
+}
+
+
+/*Helper area to print a node and its connections*/
+void printRoomsHelper(roomNode *listOfRooms){
+
+  int j;                        
+  int i;
+  for(i=0; i < NUM_OF_ROOMS; i++){
+
+  printf("\nRoom: %s(%c) connects to: ", listOfRooms[i].rName, listOfRooms[i].rType);
+  for(j=0; j<listOfRooms[i].numCons; j++){
+    printf("%s, ", listOfRooms[i].cons[j]->rName);
+  }
+  printf("\n");
+
+  }
+
+}
+
+
+void writeToFile(roomNode* myRooms){
+
+  /*DIRECTORYNAME*/
+  int i;
+  int j;
+
+/*
+  for(i=0; i<NUM_OF_ROOMS; i++){
+    char fName[10000];
+
+    strcat(fName, DIRECTORYNAME);
+    strcat(fName, "/");
+    strcat(fName, myRooms[i].rName);
+    strcat(fName, "_room");
+
+    FILE *SpecificRoomFile = open(fName, "w");
+
+    fprintf(SpecificRoomFile, "ROOM NAME: %s\n", myRooms[i].rName);
+
+    for(j=0; j< myRooms[i].numCons; j++){
+      fprintf(SpecificRoomFile, "CONNECTION %d: %s\n",j+1, myRooms[i].cons[j]->rName);
+    }
+
+    fprintf(SpecificRoomFile, "ROOM TYPE: %s\n", myRooms[i].rType);
+
+    fclose(SpecificRoomFile);
+
+
+
+  }
+  */
+
+  
+  char fName[10000];
+  strcpy(fName, "\0"); /*reset the fName string to nothing, don't want to keep cat-ing onto it. segfault.*/
+
+  strcat(fName, DIRECTORYNAME);
+  strcat(fName, "/");
+  strcat(fName, myRooms[0].rName);
+  strcat(fName, "_room");
+  printf("%s\n",fName);
+
+  FILE *specificRoomFile = fopen(fName, "w"); 
+
+  fprintf(specificRoomFile, "ROOM NAME: ");
+
+
+
+
+  fclose(specificRoomFile);
+  
 
 }
