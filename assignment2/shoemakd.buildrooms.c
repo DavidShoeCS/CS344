@@ -313,6 +313,7 @@ void writeToFile(roomNode* myRooms){
   FILE *specificRoomFile = fopen(fName, "w"); 
 
   fprintf(specificRoomFile, "ROOM NAME: ");
+  fprintf(specificRoomFile, myRooms[0].rName);
 
 
 
