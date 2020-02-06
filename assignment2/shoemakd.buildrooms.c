@@ -13,8 +13,6 @@
 #define MAX_NAME_LENGTH (int)9
 const char DIRECTORYNAME[32];
 
-
-
 /*
 Function: CreateDirName.
 create a directory with specific name.  So far it is unfilled
@@ -31,18 +29,15 @@ void createDir(){
   check = mkdir(directoryName,0700);
 
   if(!check){                         /*check if the directory was created successfully*/
-    printf("Directory Created!");
+
     strcpy(DIRECTORYNAME,directoryName);
   }
   else{
-    printf("Directory failed to create");
+
     exit(1);                          /*wasn't created successfully, throw exit error*/
   }
-  printf("\n"); /* easier readability from terminal */
-
 
 }
-
 
 typedef struct roomNode{  /*Structure of a room.  Holds the values a room has*/
   char rName[MAX_NAME_LENGTH];
@@ -51,7 +46,6 @@ typedef struct roomNode{  /*Structure of a room.  Holds the values a room has*/
   struct roomNode *cons[MAX_CONS];
 
 }roomNode;
-
 
 roomNode* createRoom(){
   srand(time(0)); /*seed for random number generator function*/
@@ -63,7 +57,6 @@ roomNode* createRoom(){
   strcpy(listOfRooms[4].rName, "Puzzle");
   strcpy(listOfRooms[5].rName, "Testing");
   strcpy(listOfRooms[6].rName, "Drug");
-
 
   listOfRooms[0].numCons = 0;
   listOfRooms[1].numCons = 0;
@@ -117,18 +110,13 @@ int main(int argc, char *argv[]){
 
   createDir();  /*create unfilled directory.  save name for creating files in that directory*/
 
-  printf("\n");
 
 
 
   roomNode *roomList = createRoom(); /*Create a list of rooms*/
 
-
   roomNode *room1; /*initalize two rooms that we will use to verify and connect*/
   roomNode *room2;
-
-
-  printf("\n------\n");
 
 
   while(doesGraphSatisfy(roomList) == 0){  /*While each node doesn't have between 3 and 6 rooms in its list*/
@@ -158,16 +146,7 @@ int main(int argc, char *argv[]){
   }
 
 
-
-printf("\n-------------------\n"); /*Help visual of output on*/
-
-printRoomsHelper(roomList);
-printf("\n-------------------\n");
-
 writeToFile(roomList);
-
-
-
 
 return 0;
 }
@@ -188,12 +167,6 @@ void connectNodes(roomNode* room1, roomNode* room2){
   room1->cons[room1->numCons++] = room2; /*connect 2 room nodes, going both ways.*/
   room2->cons[room2->numCons++] = room1;
 
-
-  printf("\n%s now connects to %s\n", room1->rName, room1->cons[0]->rName);
-
-
-
-
 }
 
 /*Helper functon to see if the nodes fill the requirements on number of connections. Returns 1 or 0.  Bool. */
@@ -203,34 +176,28 @@ int doesGraphSatisfy(roomNode* listOfRooms){
 
   for(l=0;l<NUM_OF_ROOMS;l++){
     if(listOfRooms[l].numCons < MIN_CONS){  /* does the number of connections for each node match the requirements */
-      printf("\nDoes not satisfy");
       return 0;
     }
   }
-  printf("\nDoes satisfy.");
-  return 1;
+  return 1; /*return 1 if the graph is satisfied*/
 }
 
 /*check if the 2 rooms passed in pass all tests to connect them. Return 1 if connection is valid, 0 if not*/
 int ConnectionValid(roomNode* room1, roomNode* room2){
 
   if(room1 == room2){ /*was the same node passed in?? Don't want that*/
-    printf("Room1 = Room2 problem");
     return 0;
   }
   if(isNodeFull(room1) == 0 || isNodeFull(room2) == 0){
-    printf("\nnode full problem\n");
     return 0;
   }
   int i;
   for(i=0;i<room1->numCons;i++){ /*check if room1 is already connected to room2*/
 
     if(room1->cons[i] == room2){
-      printf("\ncontains problem\n");
       return 0;
     }
 }
-  printf("\nMade it to return 1!\n");
    return 1;
 }
 
@@ -253,7 +220,7 @@ int isNodeFull(roomNode* room){
 /*Helper area to print a node and its connections*/
 void printRoomsHelper(roomNode *listOfRooms){
 
-  int j;                        
+  int j;
   int i;
   for(i=0; i < NUM_OF_ROOMS; i++){
 
@@ -268,57 +235,43 @@ void printRoomsHelper(roomNode *listOfRooms){
 }
 
 
+/*Function writeToFile writes content of room nodes into seperate files.*/
 void writeToFile(roomNode* myRooms){
 
   /*DIRECTORYNAME*/
   int i;
   int j;
 
-/*
-  for(i=0; i<NUM_OF_ROOMS; i++){
-    char fName[10000];
+  char fName[100];
+
+  for(i=0;i<NUM_OF_ROOMS;i++){
+    strcpy(fName, "\0"); /*reset the fName string to nothing, don't want to keep cat-ing onto it. segfault.*/
 
     strcat(fName, DIRECTORYNAME);
     strcat(fName, "/");
     strcat(fName, myRooms[i].rName);
     strcat(fName, "_room");
 
-    FILE *SpecificRoomFile = open(fName, "w");
+    FILE *specificRoomFile = fopen(fName, "w"); /*open a file in our directory, with the name of whatever is in the list of rooms.*/
 
-    fprintf(SpecificRoomFile, "ROOM NAME: %s\n", myRooms[i].rName);
-
-    for(j=0; j< myRooms[i].numCons; j++){
-      fprintf(SpecificRoomFile, "CONNECTION %d: %s\n",j+1, myRooms[i].cons[j]->rName);
+    fprintf(specificRoomFile, "ROOM NAME: ");
+    fprintf(specificRoomFile, myRooms[i].rName);
+    fprintf(specificRoomFile, "\n" );
+    for(j=0;j<myRooms[i].numCons; j++){
+      fprintf(specificRoomFile, "CONNECTION %d: %s\n", j+1, myRooms[i].cons[j]->rName); /*format and print connections in the file*/
     }
 
-    fprintf(SpecificRoomFile, "ROOM TYPE: %s\n", myRooms[i].rType);
+    /*fprintf(specificRoomFile, "ROOM TYPE: %c\n\n", myRooms[i].rType);*/
+    if(myRooms[i].rType == 'm'){
+      fprintf(specificRoomFile, "ROOM TYPE: MID_ROOM\n"); /*quick fix to write my room type, instead of a character like I have the nodes having.*/
+    }
+    if(myRooms[i].rType == 's'){
+      fprintf(specificRoomFile, "ROOM TYPE: START_ROOM\n");
+    }
+    if(myRooms[i].rType == 'e'){
+      fprintf(specificRoomFile, "ROOM TYPE: END_ROOM\n");
+    }
 
-    fclose(SpecificRoomFile);
-
-
-
+  fclose(specificRoomFile); /*close file since we are done using it.*/
   }
-  */
-
-  
-  char fName[10000];
-  strcpy(fName, "\0"); /*reset the fName string to nothing, don't want to keep cat-ing onto it. segfault.*/
-
-  strcat(fName, DIRECTORYNAME);
-  strcat(fName, "/");
-  strcat(fName, myRooms[0].rName);
-  strcat(fName, "_room");
-  printf("%s\n",fName);
-
-  FILE *specificRoomFile = fopen(fName, "w"); 
-
-  fprintf(specificRoomFile, "ROOM NAME: ");
-  fprintf(specificRoomFile, myRooms[0].rName);
-
-
-
-
-  fclose(specificRoomFile);
-  
-
 }
