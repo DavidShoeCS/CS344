@@ -31,23 +31,128 @@ roomNode* findNode(roomNode *roomList, char *roomName);
 
 void buildStructsFromFile(char *directory, roomNode* roomList);
 
+
+void playGame(roomNode* roomList);
+
+roomNode* findStartRoom(roomNode* roomList);
+
+int isValidConnection(roomNode* currRoom, char *sUI);
+void printVisitedNodes(roomNode *roomList, int counter);
+
 /**********************MAIN AREA*************************************************/
 int main(int argc, char *argv[]){
 
-char *newestDir; /*latest directory we found from function */
+  char *newestDir; /*latest directory we found from function */
 
-newestDir = getNewestDir();
+  newestDir = getNewestDir();
 
-roomNode *roomList = initRooms();
+  roomNode *roomList = initRooms();
 
-buildStructsFromFile(newestDir, roomList);
+  buildStructsFromFile(newestDir, roomList);
+  playGame(roomList);
 
-printRoomsHelper(roomList);
+
 
 return 0;
 }
 /**********************END MAIN AREA********************************************/
 
+void playGame(roomNode* roomList){
+  int buff = 100;
+  int loopC;
+  roomNode *currRoom;
+  roomNode* myStartRoom;
+  roomNode* listOfVisitedNodes = malloc(NUM_OF_ROOMS * sizeof(roomNode)); /*create a list that will hold the visited nodes in order*/
+  int visitedCounter=0;
+  char askPrompt='n';
+  char exitPrompt='n';
+  char userInput[100];
+  char snippedUserInput[100];
+  /***************************************************/
+
+  myStartRoom = findStartRoom(roomList);
+  currRoom = myStartRoom;
+
+  while(exitPrompt == 'n'){ /*while we dont want to exit*/
+
+    while(askPrompt == 'n'){ /*keep asking the user for input until we get a correct response*/
+      printf("CURRENT LOCATION: %s\n", currRoom->rName);
+      printf("POSSIBLE CONNECTIONS: ");
+      printf("%s", currRoom->cons[0]->rName);
+      for(loopC=1;loopC<currRoom->numCons;loopC++){
+        printf(", %s", currRoom->cons[loopC]->rName);
+      }
+      printf(".\n");
+      printf("WHERE TO? >");
+      fgets(userInput, buff, stdin); /*this appends a new line at the end of user's input*/
+      sscanf(userInput, "%s", snippedUserInput);/*saves user input into snipped version, getting rid of the new line at the end. Found this method on google.*/
+
+      if(isValidConnection(currRoom, snippedUserInput)==0){
+        printf("\nHUH? I DON'T UNDERSTAND THAT ROOM. TRY AGAIN.\n");
+        printf("\n");
+      }
+      else{
+        printf("\n");
+        askPrompt = 'y';
+        currRoom = findNode(roomList, snippedUserInput);
+        listOfVisitedNodes[visitedCounter] = *currRoom;
+        visitedCounter++;
+
+      }
+
+    }
+    //break;
+    if (currRoom->rType == 'E'){
+      printf("GOOD JOB YOU MADE IT TO THE END\n");
+      printVisitedNodes(listOfVisitedNodes, visitedCounter);
+      exitPrompt = 'Y';
+
+    }
+    else
+    {
+      askPrompt = 'n';
+    }
+
+
+  }
+
+
+}
+
+void printVisitedNodes(roomNode *roomList, int counter){
+  int i;
+  printf("YOU HAVE FOUND THE END ROOM. CONGRATULATIONS!\n");
+  printf("YOU TOOK %d STEPS. YOUR PATH TO VICTORY WAS:\n", counter);
+  for(i=0; i<counter;i++){
+    printf("%s", roomList[i].rName);
+    printf("\n");
+  }
+
+}
+
+int isValidConnection(roomNode* currRoom, char *sUserInput){
+  int i;
+  for(i=0; i<currRoom->numCons;i++){
+      if(strcmp(currRoom->cons[i]->rName, sUserInput)==0){
+        return 1; /*If the user input is indeed a connected node to the room we are currently at, return 1.*/
+      }
+  }
+  return 0;
+
+}
+
+ /*helper function to get the  start room*/
+roomNode* findStartRoom(roomNode* roomList){
+
+  int j;
+  for(j=0; j < NUM_OF_ROOMS; j++){ /*loop through my list of rooms until we find the start room, then return it for later use.*/
+    if(roomList[j].rType == 'S'){
+      return &roomList[j];
+    }
+
+  }
+
+}
 
 
 int findLine(char const* str, char const* substr){
@@ -64,7 +169,7 @@ int findLine(char const* str, char const* substr){
 
 void buildStructsFromFile(char* directory, roomNode* roomList){
 
-  struct dirent *de;  /* Pointer for directory entry*/
+  struct dirent *de;  // Pointer for directory entry
 
     char *dirPath[100];
     char *filePath[100];
@@ -75,7 +180,7 @@ void buildStructsFromFile(char* directory, roomNode* roomList){
 
     DIR *dir = opendir(dirPath); /*open specified path we made*/
 
-    if (dir == NULL)  /* if the directory doesn't exist, throw error*/
+    if (dir == NULL)  // if the directory doesn't exist, throw error
     {
         printf("Could not open current directory" );
     }

@@ -7,5 +7,5 @@ clean:
 	rm -rf *.o shoemakd.adventure shoemakd.buildrooms shoemakd.rooms.7*
 	rm -rf *.o shoemakd.adventure shoemakd.buildrooms shoemakd.rooms.8*
 	rm -rf *.o shoemakd.adventure shoemakd.buildrooms shoemakd.rooms.9*
-	rm -rf *.o shoemakd.adventure shoemakd.buildrooms shoemakd.rooms.1*
+	rm -rf *.o shoemakd.adventure shoemakd.buildrooms shoemakd.rooms.3*
 	rm -rf *.o shoemakd.adventure shoemakd.buildrooms shoemakd.rooms.2*
