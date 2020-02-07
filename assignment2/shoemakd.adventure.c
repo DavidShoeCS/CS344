@@ -101,7 +101,6 @@ void playGame(roomNode* roomList){
       }
 
     }
-    //break;
     if (currRoom->rType == 'E'){
       printf("GOOD JOB YOU MADE IT TO THE END\n");
       printVisitedNodes(listOfVisitedNodes, visitedCounter);
@@ -169,7 +168,7 @@ int findLine(char const* str, char const* substr){
 
 void buildStructsFromFile(char* directory, roomNode* roomList){
 
-  struct dirent *de;  // Pointer for directory entry
+  struct dirent *de;  /*Pointer for directory entry*/
 
     char *dirPath[100];
     char *filePath[100];
@@ -180,7 +179,7 @@ void buildStructsFromFile(char* directory, roomNode* roomList){
 
     DIR *dir = opendir(dirPath); /*open specified path we made*/
 
-    if (dir == NULL)  // if the directory doesn't exist, throw error
+    if (dir == NULL)  /* if the directory doesn't exist, throw error*/
     {
         printf("Could not open current directory" );
     }
