@@ -119,7 +119,7 @@ void buildStructsFromFile(char* directory, roomNode* roomList){
 
     /*************************************************************************************/
     dir = opendir(dirPath); /*This section will re open all the files, and fill in connections*/
-    if (dir == NULL)  // if the directory doesn't exist, throw error
+    if (dir == NULL)  /* if the directory doesn't exist, throw error*/
     {
         printf("Could not open current directory" );
     }
