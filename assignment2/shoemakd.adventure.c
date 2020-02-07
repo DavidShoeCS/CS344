@@ -8,6 +8,11 @@
 #include <dirent.h>
 #include <regex.h>
 
+#include <time>
+#include <pthread>
+
+
+
 #define MAX_CONS (int)6
 #define NUM_OF_ROOMS (int)7
 #define MIN_CONS (int)3
@@ -39,6 +44,13 @@ roomNode* findStartRoom(roomNode* roomList);
 int isValidConnection(roomNode* currRoom, char *sUI);
 void printVisitedNodes(roomNode *roomList, int counter);
 
+void threadProg();
+
+void printTimeToFile();
+
+void printTimeToUser();
+
+
 /**********************MAIN AREA*************************************************/
 int main(int argc, char *argv[]){
 
@@ -56,6 +68,18 @@ int main(int argc, char *argv[]){
 return 0;
 }
 /**********************END MAIN AREA********************************************/
+
+
+
+void threadProg(){
+
+
+
+
+}
+
+
+
 
 void playGame(roomNode* roomList){
   int buff = 100;
