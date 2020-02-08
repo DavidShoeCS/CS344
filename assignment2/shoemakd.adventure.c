@@ -28,15 +28,14 @@ typedef struct roomNode{  /*Structure of a room.  Holds the values a room has*/
 
 }roomNode;
 
+/*PROTOTYPES THAT ARE MADE BELOW MAIN*/
 roomNode* initRooms();
-
 char *getNewestDir();
 int findLine(char const* str, char const* substr);
 void printRoomsHelper(roomNode *listOfRooms);
 roomNode* findNode(roomNode *roomList, char *roomName);
 
 void buildStructsFromFile(char *directory, roomNode* roomList);
-
 
 void playGame(roomNode* roomList);
 
@@ -65,7 +64,7 @@ int main(int argc, char *argv[]){
   playGame(roomList);
 
 
-  free(roomList);
+  free(roomList); /*free any data we malloced*/
 return 0;
 }
 /**********************END MAIN AREA********************************************/
@@ -108,23 +107,24 @@ void printTimeToUser(){
 
 /*thread the print time program*/
 void threadProg(){
-  pthread_t threadV;
+  pthread_t threadV;  /*Used stack overflow and google heavily for this section*/
+                      /*https://stackoverflow.com/questions/7411301/how-to-introduce-date-and-time-in-log-file*/
 
-  pthread_mutex_init(&myMutex, NULL);
+  pthread_mutex_init(&myMutex, NULL); /*initialize to null*/
   pthread_mutex_lock(&myMutex);
 
   int threadID;
-  threadID = pthread_create(&threadV, NULL, printTimeToFile, NULL);
+  threadID = pthread_create(&threadV, NULL, printTimeToFile, NULL); /*create thread*/
 
   pthread_mutex_unlock(&myMutex);
-  pthread_mutex_destroy(&myMutex);
+  pthread_mutex_destroy(&myMutex); /*destroy lock*/
   usleep(5000);
 
 }
 
 
 
-
+/*Play game function.  ask for user input*/
 void playGame(roomNode* roomList){
   int buff = 100;
   int loopC;
@@ -133,7 +133,7 @@ void playGame(roomNode* roomList){
   roomNode* listOfVisitedNodes = malloc(NUM_OF_ROOMS * sizeof(roomNode)); /*create a list that will hold the visited nodes in order*/
   int visitedCounter=0;
   char askPrompt='n';
-  char exitPrompt='n';
+  char exitPrompt='n'; /*initialize prompts which will be used for while loop conditions*/
   char userInput[100];
   char snippedUserInput[100];
   /***************************************************/
@@ -156,7 +156,7 @@ void playGame(roomNode* roomList){
       sscanf(userInput, "%s", snippedUserInput);/*saves user input into snipped version, getting rid of the new line at the end. Found this method on google.*/
 
 
-      if(strcmp(snippedUserInput, "time") == 0){
+      if(strcmp(snippedUserInput, "time") == 0){ /*if the user requests time, do threading and print back formatted time*/
         threadProg();
         printTimeToUser();
         printf("\n");
@@ -168,8 +168,8 @@ void playGame(roomNode* roomList){
       else{
         printf("\n");
         askPrompt = 'y';
-        currRoom = findNode(roomList, snippedUserInput);
-        listOfVisitedNodes[visitedCounter] = *currRoom;
+        currRoom = findNode(roomList, snippedUserInput); /*check if the node we are looking for is in our list of nodes*/
+        listOfVisitedNodes[visitedCounter] = *currRoom; /*add current room to a list of visited rooms*/
         visitedCounter++;
 
       }
@@ -177,32 +177,30 @@ void playGame(roomNode* roomList){
     }
     if (currRoom->rType == 'E'){
       printf("GOOD JOB YOU MADE IT TO THE END\n");
-      printVisitedNodes(listOfVisitedNodes, visitedCounter);
-      exitPrompt = 'Y';
+      printVisitedNodes(listOfVisitedNodes, visitedCounter); /*print the list of visited nodes*/
+      exitPrompt = 'Y'; /*change prompt so we exit while loop*/
 
     }
     else
     {
-      askPrompt = 'n';
+      askPrompt = 'n'; /*change promp to go back into while loop*/
     }
-
-
   }
-
-
 }
 
+/*at the end of play game function, print a list of all the visited rooms.*/
 void printVisitedNodes(roomNode *roomList, int counter){
   int i;
   printf("YOU HAVE FOUND THE END ROOM. CONGRATULATIONS!\n");
   printf("YOU TOOK %d STEPS. YOUR PATH TO VICTORY WAS:\n", counter);
   for(i=0; i<counter;i++){
-    printf("%s", roomList[i].rName);
+    printf("%s", roomList[i].rName); /*loop through list of room nodes, printing their names*/
     printf("\n");
   }
 
 }
 
+/*check if the input from user matches a connection to the current room we are at*/
 int isValidConnection(roomNode* currRoom, char *sUserInput){
   int i;
   for(i=0; i<currRoom->numCons;i++){
@@ -229,7 +227,7 @@ roomNode* findStartRoom(roomNode* roomList){
 
 
 int findLine(char const* str, char const* substr){
-
+  /*find the line a specific string is on.  useful for finding "CONNECTION" and "ROOM NAME"*/
   char* position = strstr(str, substr);
     if(position) {
         return 1;
@@ -348,7 +346,6 @@ char *getNewestDir(){
         latestDir = de->d_name;  /*when the if statement passes, set the newest directory to latestDir*/
         }
       }
-      /*printf("%s\n", latestDir);*/
       return latestDir;
 
   closedir(dir);
@@ -364,7 +361,7 @@ roomNode* initRooms(){
   return listOfRooms;
 
 }
-
+/*A helper function to print the list of rooms, each ones type, and their connections*/
 void printRoomsHelper(roomNode *listOfRooms){
 
   int j;
@@ -373,22 +370,23 @@ void printRoomsHelper(roomNode *listOfRooms){
 
   printf("\nRoom: %s's number of Cons: %d", listOfRooms[i].rName, listOfRooms[i].numCons);
   printf("\nRoom: %s(%c) connects to: ", listOfRooms[i].rName, listOfRooms[i].rType);
-  for(j=0; j<listOfRooms[i].numCons; j++){
+  for(j=0; j<listOfRooms[i].numCons; j++){ /*nested loop to print connections of a node*/
     printf("%s, ", listOfRooms[i].cons[j]->rName);
   }
-  printf("\n");
+  printf("\n"); /*added readability*/
 
   }
 
 }
 
+/*find a node by comparing a name passed in to the list of room nodes we have*/
 roomNode* findNode(roomNode *roomList, char *roomName){
   int m;
   for(m=0; m<NUM_OF_ROOMS; m++){
-    if(strcmp(roomList[m].rName, roomName)==0){
+    if(strcmp(roomList[m].rName, roomName)==0){ /*if found, return the node we were searching for*/
       return &roomList[m];
   }
   }
-  return NULL;
+  return NULL; /*If it is not found, return a null node*/
 
 }

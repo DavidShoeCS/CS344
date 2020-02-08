@@ -91,6 +91,7 @@ roomNode* createRoom(){
   return listOfRooms; /*return array of rooms*/
 }
 
+/*PROTOTYPES THAT ARE MADE BELOW MAIN*/
 void connectNodes(roomNode* room1, roomNode* room2);
 
 int ConnectionValid(roomNode* room1, roomNode* room2 );
