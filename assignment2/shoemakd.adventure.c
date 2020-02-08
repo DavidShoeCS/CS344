@@ -83,7 +83,7 @@ void *printTimeToFile(){
   struct tm *timeStruct; /*time structure to use strftime function*/
   time_t currTime = time(0);
 
-  timeStruct = gmtime(&currTime);
+  timeStruct = localtime(&currTime); /*set to local time.  This caused headaches*/
 
   strftime (storage, 100, format, timeStruct);
   fputs(storage, timeFile); /*put our formatted time into the file to be read*/
