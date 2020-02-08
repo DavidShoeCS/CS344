@@ -8,8 +8,8 @@
 #include <dirent.h>
 #include <regex.h>
 
-#include <time>
-#include <pthread>
+#include <time.h>
+#include <pthread.h>
 
 
 
@@ -18,6 +18,7 @@
 #define MIN_CONS (int)3
 #define MAX_NAME_LENGTH (int)9
 const char DIRECTORYNAME[32];
+pthread_mutex_t myMutex;
 
 typedef struct roomNode{  /*Structure of a room.  Holds the values a room has*/
   char rName[MAX_NAME_LENGTH];
@@ -46,7 +47,7 @@ void printVisitedNodes(roomNode *roomList, int counter);
 
 void threadProg();
 
-void printTimeToFile();
+void *printTimeToFile();
 
 void printTimeToUser();
 
@@ -55,12 +56,12 @@ void printTimeToUser();
 int main(int argc, char *argv[]){
 
   char *newestDir; /*latest directory we found from function */
-
   newestDir = getNewestDir();
 
   roomNode *roomList = initRooms();
 
   buildStructsFromFile(newestDir, roomList);
+
   playGame(roomList);
 
 
@@ -70,11 +71,54 @@ return 0;
 /**********************END MAIN AREA********************************************/
 
 
+/*function to print the time into a file, which will then be read from to show the user*/
+void *printTimeToFile(){
+  char storage[100]; /*buffer area to be used in strftime*/
+  char format[100];
+  strcpy(format, "%H:%M:%S on %d, %m, %Y"); /*Make a format of time to be presented to user*/
 
+  FILE* timeFile;
+  timeFile = fopen("currentTime.txt", "w+"); /*open file to write*/
+
+  struct tm *timeStruct; /*time structure to use strftime function*/
+  time_t currTime = time(0);
+
+  timeStruct = gmtime (&currTime);
+
+  strftime (storage, 100, format, timeStruct);
+  fputs(storage, timeFile); /*put our formatted time into the file to be read*/
+  fclose(timeFile);
+
+}
+
+/*function to print time to the screen at user request*/
+void printTimeToUser(){
+  char storage[100]; /*variable to store what we read from the file*/
+  FILE *timeFile;
+  timeFile = fopen("currentTime.txt", "r+"); /*read from this file that we created earlier*/
+
+  fgets(storage, 100, timeFile); /*store line into storage*/
+  printf("\n");
+  printf("%s\n", storage); /*print contents of storage to user*/
+
+  fclose(timeFile); /*done with file, close access*/
+
+}
+
+
+/*thread the print time program*/
 void threadProg(){
+  pthread_t threadV;
 
+  pthread_mutex_init(&myMutex, NULL);
+  pthread_mutex_lock(&myMutex);
 
+  int threadID;
+  threadID = pthread_create(&threadV, NULL, printTimeToFile, NULL);
 
+  pthread_mutex_unlock(&myMutex);
+  pthread_mutex_destroy(&myMutex);
+  usleep(50);
 
 }
 
@@ -96,7 +140,7 @@ void playGame(roomNode* roomList){
 
   myStartRoom = findStartRoom(roomList);
   currRoom = myStartRoom;
-
+  printf("\n"); /*better readability at start of the game*/
   while(exitPrompt == 'n'){ /*while we dont want to exit*/
 
     while(askPrompt == 'n'){ /*keep asking the user for input until we get a correct response*/
@@ -111,7 +155,13 @@ void playGame(roomNode* roomList){
       fgets(userInput, buff, stdin); /*this appends a new line at the end of user's input*/
       sscanf(userInput, "%s", snippedUserInput);/*saves user input into snipped version, getting rid of the new line at the end. Found this method on google.*/
 
-      if(isValidConnection(currRoom, snippedUserInput)==0){
+
+      if(strcmp(snippedUserInput, "time") == 0){
+        threadProg();
+        printTimeToUser();
+        printf("\n");
+      }
+      else if(isValidConnection(currRoom, snippedUserInput)==0){
         printf("\nHUH? I DON'T UNDERSTAND THAT ROOM. TRY AGAIN.\n");
         printf("\n");
       }
