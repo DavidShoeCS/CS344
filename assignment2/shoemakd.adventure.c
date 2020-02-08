@@ -65,7 +65,7 @@ int main(int argc, char *argv[]){
   playGame(roomList);
 
 
-
+  free(roomList);
 return 0;
 }
 /**********************END MAIN AREA********************************************/
@@ -83,7 +83,7 @@ void *printTimeToFile(){
   struct tm *timeStruct; /*time structure to use strftime function*/
   time_t currTime = time(0);
 
-  timeStruct = gmtime (&currTime);
+  timeStruct = gmtime(&currTime);
 
   strftime (storage, 100, format, timeStruct);
   fputs(storage, timeFile); /*put our formatted time into the file to be read*/
@@ -95,7 +95,7 @@ void *printTimeToFile(){
 void printTimeToUser(){
   char storage[100]; /*variable to store what we read from the file*/
   FILE *timeFile;
-  timeFile = fopen("currentTime.txt", "r+"); /*read from this file that we created earlier*/
+  timeFile = fopen("currentTime.txt", "r"); /*read from this file that we created earlier*/
 
   fgets(storage, 100, timeFile); /*store line into storage*/
   printf("\n");
@@ -118,7 +118,7 @@ void threadProg(){
 
   pthread_mutex_unlock(&myMutex);
   pthread_mutex_destroy(&myMutex);
-  usleep(50);
+  usleep(5000);
 
 }
 

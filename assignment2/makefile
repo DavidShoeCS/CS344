@@ -1,5 +1,5 @@
 adv: shoemakd.adventure.c
-	gcc -std=c89 -o shoemakd.adventure shoemakd.adventure.c
+	gcc -std=c89 -o shoemakd.adventure shoemakd.adventure.c -lpthread
 rooms: shoemakd.buildrooms.c
 	gcc -std=c89 -o shoemakd.buildrooms shoemakd.buildrooms.c
 clean:
