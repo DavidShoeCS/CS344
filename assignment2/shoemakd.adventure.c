@@ -64,7 +64,6 @@ int main(int argc, char *argv[]){
   playGame(roomList);
 
 
-  free(roomList); /*free any data we malloced*/
 return 0;
 }
 /**********************END MAIN AREA********************************************/
@@ -319,10 +318,8 @@ void buildStructsFromFile(char* directory, roomNode* roomList){
                 if(findLine(line, "CONNECTION") == 1){
 
                   roomList[i].cons[conCounter] = findNode(roomList, strStorage);
-
                   conCounter++; /*Keep track of what room we are looking at*/
           }
-
         }
         i++;
         fclose(fp);
@@ -347,7 +344,6 @@ char *getNewestDir(){
         }
       }
       return latestDir;
-
   closedir(dir);
 }
 
@@ -357,10 +353,9 @@ roomNode* initRooms(){
   for(i=0; i< NUM_OF_ROOMS; i++){
     listOfRooms[i].numCons=0;
   }
-
   return listOfRooms;
-
 }
+
 /*A helper function to print the list of rooms, each ones type, and their connections*/
 void printRoomsHelper(roomNode *listOfRooms){
 
@@ -376,7 +371,6 @@ void printRoomsHelper(roomNode *listOfRooms){
   printf("\n"); /*added readability*/
 
   }
-
 }
 
 /*find a node by comparing a name passed in to the list of room nodes we have*/
@@ -388,5 +382,4 @@ roomNode* findNode(roomNode *roomList, char *roomName){
   }
   }
   return NULL; /*If it is not found, return a null node*/
-
 }

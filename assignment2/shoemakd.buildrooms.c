@@ -13,6 +13,9 @@
 #define MAX_NAME_LENGTH (int)9
 const char DIRECTORYNAME[32];
 
+char *possibleNamesList[10] = {"Office", "Dungeon", "Clinic","Theatre","Puzzle","Testing","Drug","Backyard","Kitchen","Living"};
+
+
 /*
 Function: CreateDirName.
 create a directory with specific name.  So far it is unfilled
@@ -50,6 +53,7 @@ typedef struct roomNode{  /*Structure of a room.  Holds the values a room has*/
 roomNode* createRoom(){
   srand(time(0)); /*seed for random number generator function*/
   roomNode* listOfRooms = malloc(NUM_OF_ROOMS * sizeof(roomNode));  /*create a list of room nodes*/
+
   strcpy(listOfRooms[0].rName, "Office");
   strcpy(listOfRooms[1].rName, "Dungeon");
   strcpy(listOfRooms[2].rName, "Clinic");    /* put names of the rooms into the list of rooms, for room name*/
@@ -58,13 +62,13 @@ roomNode* createRoom(){
   strcpy(listOfRooms[5].rName, "Testing");
   strcpy(listOfRooms[6].rName, "Drug");
 
-  listOfRooms[0].numCons = 0;
-  listOfRooms[1].numCons = 0;
-  listOfRooms[2].numCons = 0;  /*initially each node will have no connections.  Will build up later*/
-  listOfRooms[3].numCons = 0;   /*Not the best way to initialize, but hey, it makes it my own.*/
-  listOfRooms[4].numCons = 0;
-  listOfRooms[5].numCons = 0;
-  listOfRooms[6].numCons = 0;
+
+  int conLoop;
+
+  for(conLoop=0;conLoop<7;conLoop++){ /*initially each node will have no connections.  Will build up later*/
+    listOfRooms[conLoop].numCons = 0;
+  }
+
 
   int i; /*use for for loop later*/
 
@@ -111,14 +115,10 @@ int main(int argc, char *argv[]){
 
   createDir();  /*create unfilled directory.  save name for creating files in that directory*/
 
-
-
-
   roomNode *roomList = createRoom(); /*Create a list of rooms*/
 
   roomNode *room1; /*initalize two rooms that we will use to verify and connect*/
   roomNode *room2;
-
 
   while(doesGraphSatisfy(roomList) == 0){  /*While each node doesn't have between 3 and 6 rooms in its list*/
     int r1Index = randNumGen(6,0);
@@ -143,7 +143,6 @@ int main(int argc, char *argv[]){
     if(ConnectionValid(room1, room2) == 1){ /*If the connection is valid, connect the nodes.*/
       connectNodes(room1,room2);
     }
-
   }
 
 
@@ -163,8 +162,6 @@ int randNumGen(int upperBound, int lowerBound){  /* random number generator.  us
 /*connect two given nodes together*/
 void connectNodes(roomNode* room1, roomNode* room2){
 
-
-  /*ConnectionValid(room1, room2);*/
   room1->cons[room1->numCons++] = room2; /*connect 2 room nodes, going both ways.*/
   room2->cons[room2->numCons++] = room1;
 
@@ -213,8 +210,6 @@ int isNodeFull(roomNode* room){
   else{
     return 0;
   }
-
-
 }
 
 
@@ -230,9 +225,7 @@ void printRoomsHelper(roomNode *listOfRooms){
     printf("%s, ", listOfRooms[i].cons[j]->rName);
   }
   printf("\n");
-
   }
-
 }
 
 
@@ -262,7 +255,6 @@ void writeToFile(roomNode* myRooms){
       fprintf(specificRoomFile, "CONNECTION %d: %s\n", j+1, myRooms[i].cons[j]->rName); /*format and print connections in the file*/
     }
 
-    /*fprintf(specificRoomFile, "ROOM TYPE: %c\n\n", myRooms[i].rType);*/
     if(myRooms[i].rType == 'm'){
       fprintf(specificRoomFile, "ROOM TYPE: MID_ROOM\n"); /*quick fix to write my room type, instead of a character like I have the nodes having.*/
     }
