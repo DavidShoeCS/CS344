@@ -7,27 +7,52 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
+#include <time.h>
 
 char stop[5] = "no"; /*stop initializer for while loop*/
-
+pid_t forkPID;
+int status = 0;
+char backGroundCheck = 'n';
 
 /*take user input and do actions based on what the user typed*/
-void interpretUserCommand(char* uIn, char myArray[512][2049], int);
+void interpretUserCommand(char* uIn, char *myArray[2049], int);
 
-void printArrayHelper(char myArray[512][2049], int);
+void printArrayHelper(char* myArray[2049], int);
 
+void getStatus(int st); /*idea from lecture*/
 
+void catchCTRLC(int signo);
+void catchCTRLZ(int signo);
 
 
 
 
 int main(){
   char uInput[2048];
-  char inputArray[512][2049];
+  char *inputArray[2049];
   char userCommand[2048]; /*store the first element of user input array here.  The user's command*/
   char lastArg[2048]; /*store the last element of user input array here. could be & for background process*/
   char tempSTR[2048];/*use this to help clean new line elements from strings*/
+  char *testArray[2049];
 
+  backGroundCheck = 'n'; /*initalize to not want to run stuff in background.  User can change by specifying '&'*/
+
+  struct sigaction SIGCTRLC_action = {0}, SIGCTRLZ_action = {0};
+
+/*SIG STUFF TAKEN FROM LECTURE--------------------------------*/
+  SIGCTRLC_action.sa_handler = catchCTRLC;
+  sigfillset(&SIGCTRLC_action.sa_mask);
+  SIGCTRLZ_action.sa_flags = 0;
+
+  SIGCTRLZ_action.sa_handler = catchCTRLZ;
+  sigfillset(&SIGCTRLZ_action.sa_mask);
+  SIGCTRLZ_action.sa_flags = 0;
+
+  sigaction(SIGINT, &SIGCTRLC_action, NULL);
+  sigaction(SIGUSR2, &SIGCTRLZ_action, NULL);
+/*END SIG STUFF-----------------------------------------------*/
+
+  printf("pid in main->%d\n",getppid());
   /*Loop until user exits shell*/
   while(strcmp("no", stop) == 0){
     int arrayCounter = 0; /*used to help tell how long my array is*/
@@ -41,19 +66,34 @@ int main(){
 
     while (token != NULL) {
           sscanf(token, "%s", tempSTR);
-          strcpy(inputArray[arrayCounter], tempSTR);
+          inputArray[arrayCounter] = strdup(tempSTR);
           arrayCounter++;
           token = strtok(NULL, " "); /*seperate by spaces*/
           i++;
     }
+
+
 
     fflush(stdin);
 
     strcpy(userCommand, inputArray[0]); /*get the command into its own variable*/
     strcpy(lastArg, inputArray[arrayCounter-1]);/*store the last argument the user gives into its own variable*/
 
+    if(strcmp(inputArray[arrayCounter-1], "&") == 0){
+      inputArray[arrayCounter-1] = NULL; /*If the last argument is an &, then save it to lastArg then set that spot in array to null for execvp readability*/
+    }
+    else{
+      inputArray[arrayCounter] = NULL; /*set the element after our last argument in the array to null, so execvp knows when to stop*/
+    }
+
+    if(strcmp(lastArg, "&")==0){ /*If user wants to run command in background*/
+      backGroundCheck = 'y';
+    }
 
     interpretUserCommand(userCommand, inputArray, arrayCounter);
+
+
+
 
 
 
@@ -78,8 +118,36 @@ return 0;
 }
 
 
+void catchCTRLC(int signo){
+  char *message = " Caught SIGINT/CTRLC!\n";
+  write(STDOUT_FILENO, message, 38);
+  fflush(stdout);
+
+}
+
+void catchCTRLZ(int signo){
+  char *message = "Caught! BYEE!\n";
+  write(STDOUT_FILENO, message, 25);
+  exit(0);
+}
+
+/*get the status.  This idea was from the lecture videos*/
+void getStatus(int st){
+   int eSt = -10;
+   if(WIFEXITED(st)){
+     eSt = WEXITSTATUS(st);
+     printf("exit value is %i\n", eSt);
+     fflush(stdout);
+   }
+   else{
+     printf("Terminated by signal %i\n", st);
+     fflush(stdout);
+   }
+}
+
+
 /*take user input and do actions based on what the user typed*/
-void interpretUserCommand(char *uIn, char myArray[512][2049], int arrayCnt){
+void interpretUserCommand(char *uIn, char *myArray[2049], int arrayCnt){
   char s[100];
   if(strcmp(uIn, "exit")==0){
     strcpy(stop, "yes");
@@ -93,23 +161,66 @@ void interpretUserCommand(char *uIn, char myArray[512][2049], int arrayCnt){
       chdir(myArray[1]); /*change directory to given argument*/
     }
   }
-  else if(strcmp(uIn, "ls")==0){ /*If user wants to list elements in directory*/
-    printf("list directory initiated\n");
-  }
   else if(strcmp(uIn, "status")==0){ /*If user wants to view the status of a given element*/
-    printf("status initiated\n");
+    getStatus(status);
   }
-  else if(strcmp(uIn, "pwd")==0){ /*If user wants to view the status of a given element*/
-    printf("pwd initiated\n");
+  else if(strcmp(uIn, "#") == 0){
+      ; /*Do nothing*/
   }
+  else if(strcmp(uIn, "&") == 0){
+      ; /*Do nothing*/
+  }
+
+
   else{
-    printf("no action specified\n");
+    forkPID = fork();
+
+    switch(forkPID){
+      case -1: {
+        perror("Hull Breach!\n");
+        fflush(stdout);
+        status = 1;
+        break;
+      }
+      case 0:{
+        fflush(stdout);
+        if(execvp(uIn, myArray)){
+          printf("Command Not Found\n");
+          fflush(stdout);
+
+          _Exit(1); /*abort if child fails*/
+        }
+        break;
+      }
+      default: {
+
+        if(backGroundCheck == 'n'){
+          waitpid(forkPID, &status, 0);
+        }
+        else{
+          printf("BackgroundPID -> %d\n", forkPID);
+          fflush(stdout);
+          usleep(10000); /*help the colon be presented to the user in the right spot. stops the program from getting ahead of itself*/
+          break;
+        }
+
+      }
+
+    }
+
   }
+    forkPID = waitpid(-1, &status, WNOHANG);           //Check if any process has completed; Returns 0 if no terminated processes
+    while(forkPID > 0){
+        printf("background process, %i, is done: ", forkPID); /*FIX MEEEEEEEE*/
+        fflush(stdout);
+        getStatus(status);
+        forkPID = waitpid(-1, &status, WNOHANG);
+    }
 
 }
 
 /*helper function to print my array*/
-void printArrayHelper(char myArray[512][2049], int arrayLength){
+void printArrayHelper(char *myArray[2049], int arrayLength){
 
   int j = 0;
   printf("\n");
