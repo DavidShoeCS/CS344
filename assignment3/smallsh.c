@@ -12,7 +12,8 @@
 char stop[5] = "no"; /*stop initializer for while loop*/
 pid_t forkPID;
 int status = 0;
-char backGroundCheck = 'n';
+int backGroundCheck = 0;
+int allowBG = 1;
 
 /*take user input and do actions based on what the user typed*/
 void interpretUserCommand(char* uIn, char *myArray[2049], int);
@@ -22,7 +23,7 @@ void printArrayHelper(char* myArray[2049], int);
 void getStatus(int st); /*idea from lecture*/
 
 void catchCTRLC(int signo);
-void catchCTRLZ(int signo);
+void catchCTRLZ(int sign);
 
 
 
@@ -34,43 +35,61 @@ int main(){
   char lastArg[2048]; /*store the last element of user input array here. could be & for background process*/
   char tempSTR[2048];/*use this to help clean new line elements from strings*/
   char *testArray[2049];
+  char *iFile = NULL;
+  char *oFile = NULL;
 
-  backGroundCheck = 'n'; /*initalize to not want to run stuff in background.  User can change by specifying '&'*/
+
+
+  backGroundCheck = 0; /*initalize to not want to run stuff in background.  User can change by specifying '&'*/
 
   struct sigaction SIGCTRLC_action = {0}, SIGCTRLZ_action = {0};
 
 /*SIG STUFF TAKEN FROM LECTURE--------------------------------*/
-  SIGCTRLC_action.sa_handler = catchCTRLC;
+  SIGCTRLC_action.sa_handler = SIG_IGN;
   sigfillset(&SIGCTRLC_action.sa_mask);
-  SIGCTRLZ_action.sa_flags = 0;
+  SIGCTRLC_action.sa_flags = 0;
 
   SIGCTRLZ_action.sa_handler = catchCTRLZ;
   sigfillset(&SIGCTRLZ_action.sa_mask);
   SIGCTRLZ_action.sa_flags = 0;
 
   sigaction(SIGINT, &SIGCTRLC_action, NULL);
-  sigaction(SIGUSR2, &SIGCTRLZ_action, NULL);
+  sigaction(SIGTSTP, &SIGCTRLZ_action, NULL);
 /*END SIG STUFF-----------------------------------------------*/
 
-  printf("pid in main->%d\n",getppid());
   /*Loop until user exits shell*/
   while(strcmp("no", stop) == 0){
+    backGroundCheck = 0;
     int arrayCounter = 0; /*used to help tell how long my array is*/
     int i=0; /*counter for putting each word user types into an array of strings*/
+
 
     printf(": ");
     fflush(stdout); /*flush standard in buffer, as recommended from assignment*/
     fgets(uInput,512,stdin); /*get user input from stdin, store into uInput*/
     char *token = strtok(uInput, " "); /*seperate by spaces. Tokenize*/
-
-
+    strcpy(tempSTR, "");
     while (token != NULL) {
-          sscanf(token, "%s", tempSTR);
-          inputArray[arrayCounter] = strdup(tempSTR);
-          arrayCounter++;
-          token = strtok(NULL, " "); /*seperate by spaces*/
-          i++;
+          sscanf(token, "%s", tempSTR); /*turn the word from bottom of while loop into tempSTR*/
+
+          if(strcmp(tempSTR, "<")==0){
+            token = strtok(NULL, " ");
+            sscanf(token, "%s", tempSTR);
+            iFile = strdup(tempSTR);
+          }
+          else if(strcmp(tempSTR, ">")==0){
+            token = strtok(NULL, " ");
+            sscanf(token, "%s", tempSTR);
+            oFile = strdup(tempSTR);
+          }
+          else{
+            inputArray[arrayCounter] = strdup(tempSTR);
+            arrayCounter++;
+          }
+
+          token = strtok(NULL, " "); /*get next word from input*/
     }
+
 
 
 
@@ -87,21 +106,11 @@ int main(){
     }
 
     if(strcmp(lastArg, "&")==0){ /*If user wants to run command in background*/
-      backGroundCheck = 'y';
+      backGroundCheck = 1;
     }
 
+
     interpretUserCommand(userCommand, inputArray, arrayCounter);
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -119,16 +128,22 @@ return 0;
 
 
 void catchCTRLC(int signo){
-  char *message = " Caught SIGINT/CTRLC!\n";
-  write(STDOUT_FILENO, message, 38);
+  //char *message = " Caught SIGINT/CTRLC!\n";
+  //write(STDOUT_FILENO, message, 38);
   fflush(stdout);
 
 }
 
-void catchCTRLZ(int signo){
-  char *message = "Caught! BYEE!\n";
-  write(STDOUT_FILENO, message, 25);
-  exit(0);
+void catchCTRLZ(int sign){
+  if(allowBG == 1){
+    allowBG = 0;
+    write(1, "\nentering foreground-only mode (& is now ignored)\n", 50);
+  }
+  else{
+    allowBG = 1;
+    write(1, "\ncommands can now be run in background\n", 39);
+  }
+
 }
 
 /*get the status.  This idea was from the lecture videos*/
@@ -170,6 +185,10 @@ void interpretUserCommand(char *uIn, char *myArray[2049], int arrayCnt){
   else if(strcmp(uIn, "&") == 0){
       ; /*Do nothing*/
   }
+  else if(strcmp(uIn, "") == 0){
+      ;
+  }
+
 
 
   else{
@@ -185,7 +204,7 @@ void interpretUserCommand(char *uIn, char *myArray[2049], int arrayCnt){
       case 0:{
         fflush(stdout);
         if(execvp(uIn, myArray)){
-          printf("Command Not Found\n");
+          printf("%s: no such file or directory\n", uIn);
           fflush(stdout);
 
           _Exit(1); /*abort if child fails*/
@@ -194,7 +213,7 @@ void interpretUserCommand(char *uIn, char *myArray[2049], int arrayCnt){
       }
       default: {
 
-        if(backGroundCheck == 'n'){
+        if(backGroundCheck == 0 || allowBG == 0){
           waitpid(forkPID, &status, 0);
         }
         else{
@@ -209,6 +228,9 @@ void interpretUserCommand(char *uIn, char *myArray[2049], int arrayCnt){
     }
 
   }
+
+
+    usleep(100000);
     forkPID = waitpid(-1, &status, WNOHANG);           //Check if any process has completed; Returns 0 if no terminated processes
     while(forkPID > 0){
         printf("background process, %i, is done: ", forkPID); /*FIX MEEEEEEEE*/
