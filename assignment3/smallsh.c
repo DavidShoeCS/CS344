@@ -15,6 +15,8 @@ int status = 0;
 int backGroundCheck = 0;
 int allowBG = 1;
 
+int testCommand = 1;
+
 /*take user input and do actions based on what the user typed*/
 void interpretUserCommand(char* uIn, char *myArray[2049], int);
 
@@ -24,6 +26,12 @@ void getStatus(int st); /*idea from lecture*/
 
 void catchCTRLC(int signo);
 void catchCTRLZ(int sign);
+
+char *iFile = NULL;
+char *oFile = NULL;
+
+int fileWriteStatus = -1;
+int fileReadStatus = -1;
 
 
 
@@ -35,8 +43,7 @@ int main(){
   char lastArg[2048]; /*store the last element of user input array here. could be & for background process*/
   char tempSTR[2048];/*use this to help clean new line elements from strings*/
   char *testArray[2049];
-  char *iFile = NULL;
-  char *oFile = NULL;
+
 
 
 
@@ -61,8 +68,8 @@ int main(){
   while(strcmp("no", stop) == 0){
     backGroundCheck = 0;
     int arrayCounter = 0; /*used to help tell how long my array is*/
-    int i=0; /*counter for putting each word user types into an array of strings*/
-
+    iFile = NULL;
+    oFile = NULL;
 
     printf(": ");
     fflush(stdout); /*flush standard in buffer, as recommended from assignment*/
@@ -82,6 +89,11 @@ int main(){
             sscanf(token, "%s", tempSTR);
             oFile = strdup(tempSTR);
           }
+          else if(strcmp(tempSTR, "$$")==0){
+            sprintf(tempSTR, "%d", getpid());
+            inputArray[arrayCounter] = strdup(tempSTR);
+            arrayCounter++;
+          }
           else{
             inputArray[arrayCounter] = strdup(tempSTR);
             arrayCounter++;
@@ -89,8 +101,6 @@ int main(){
 
           token = strtok(NULL, " "); /*get next word from input*/
     }
-
-
 
 
     fflush(stdin);
@@ -108,6 +118,8 @@ int main(){
     if(strcmp(lastArg, "&")==0){ /*If user wants to run command in background*/
       backGroundCheck = 1;
     }
+
+
 
 
     interpretUserCommand(userCommand, inputArray, arrayCounter);
@@ -138,10 +150,12 @@ void catchCTRLZ(int sign){
   if(allowBG == 1){
     allowBG = 0;
     write(1, "\nentering foreground-only mode (& is now ignored)\n", 50);
+    testCommand = 0;
   }
   else{
     allowBG = 1;
-    write(1, "\ncommands can now be run in background\n", 39);
+    write(1, "\nExiting foreground-only mode\n", 30);
+    testCommand = 0;
   }
 
 }
@@ -164,6 +178,8 @@ void getStatus(int st){
 /*take user input and do actions based on what the user typed*/
 void interpretUserCommand(char *uIn, char *myArray[2049], int arrayCnt){
   char s[100];
+
+
   if(strcmp(uIn, "exit")==0){
     strcpy(stop, "yes");
     exit(0);
@@ -179,7 +195,7 @@ void interpretUserCommand(char *uIn, char *myArray[2049], int arrayCnt){
   else if(strcmp(uIn, "status")==0){ /*If user wants to view the status of a given element*/
     getStatus(status);
   }
-  else if(strcmp(uIn, "#") == 0){
+  else if(strcmp(uIn, "#") == 0 || uIn[0] == '#'){
       ; /*Do nothing*/
   }
   else if(strcmp(uIn, "&") == 0){
@@ -187,6 +203,12 @@ void interpretUserCommand(char *uIn, char *myArray[2049], int arrayCnt){
   }
   else if(strcmp(uIn, "") == 0){
       ;
+  }
+  else if(testCommand == 0){
+    testCommand = 1;
+  }
+  else if(strcmp(uIn, "echo")==0 && myArray[1] != NULL && strcmp(myArray[1], "$$")== 0){
+    printf("%d\n", getpid());
   }
 
 
@@ -202,6 +224,42 @@ void interpretUserCommand(char *uIn, char *myArray[2049], int arrayCnt){
         break;
       }
       case 0:{
+        if(backGroundCheck == 0 || allowBG == 0){          //Foreground can be interrupted if need be
+            struct sigaction SIGCTRLC_action = {0};
+            SIGCTRLC_action.sa_handler = SIG_DFL;          //give power back to ctrl-c signal
+            sigaction(SIGINT, &SIGCTRLC_action, NULL);
+
+        }
+        if (iFile != NULL){
+          fileReadStatus = open(iFile, O_RDONLY);
+          if(fileReadStatus == -1){
+            printf("Cannot open %s for input\n", iFile);
+            fflush(stdout);
+            _exit(1);
+          }
+
+          if(dup2(fileReadStatus, 0) == -1){
+              perror("error in read dup");
+              _exit(1);
+          }
+          close(fileReadStatus);
+        }
+
+        if(oFile != NULL){
+          fileWriteStatus = open(oFile, O_WRONLY | O_CREAT | O_TRUNC, 0744); /*Taken from stack overflow*/
+          if(fileWriteStatus == -1){
+            printf("Output fail.  File cannot be opened.\n");
+            fflush(stdout);
+            _exit(1);
+          }
+
+          if(dup2(fileWriteStatus, 1) == -1){
+            perror("error in write dup");
+            _exit(1);
+           }
+           close(fileWriteStatus);
+        }
+
         fflush(stdout);
         if(execvp(uIn, myArray)){
           printf("%s: no such file or directory\n", uIn);
