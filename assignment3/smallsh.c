@@ -27,13 +27,75 @@ void getStatus(int st); /*idea from lecture*/
 void catchCTRLC(int signo);
 void catchCTRLZ(int sign);
 
+
 char *iFile = NULL;
 char *oFile = NULL;
 
 int fileWriteStatus = -1;
 int fileReadStatus = -1;
 
+char *replaceDollarSigns(const char *string, const char *oldString, int PID){
+  char newString[100];
+  sprintf(newString, "%d", PID);
+  char *res;
+  int i=0;
+  int count = 0;
+  int newStringLen = strlen(newString);
+  int oldStringLen = strlen(oldString);
 
+  for(i=0; string[i] != '\0'; i++){
+    if(strstr(&string[i], oldString) == &string[i]){
+      count++;
+      i+=oldStringLen - 1;
+    }
+  }
+
+  res = (char *)malloc(i+ count * (newStringLen - oldStringLen) +1);
+  i=0;
+  while(*string){
+    if(strstr(string, oldString) == string){
+      strcpy(&res[i], newString);
+      i+=newStringLen;
+      string+=oldStringLen;
+    }
+    else{
+      res[i++] = *string++;
+    }
+    res[i] = "\0";
+    return res;
+  }
+
+}
+//-------------
+char *replaceWord(const char *s, const char *oldW, int PID) {
+    char newW[100];
+    sprintf(newW, "%d", PID);
+    char *result;
+    int i, count = 0, newWlen = strlen(newW) , oldWlen = strlen(oldW);
+
+    for (i = 0; s[i] != '\0'; i++) {
+        if (strstr(&s[i], oldW) == &s[i]) {
+            count++;
+            i += oldWlen - 1;
+        }
+    }
+
+    result = (char *)malloc(i + count * (newWlen - oldWlen) + 1);
+
+    i = 0;
+    while (*s) {
+        if (strstr(s, oldW) == s) {
+            strcpy(&result[i], newW);
+            i += newWlen;
+            s += oldWlen;
+        }
+        else
+            result[i++] = *s++;
+    }
+
+    result[i] = '\0';
+    return result;
+}
 
 
 int main(){
@@ -91,7 +153,7 @@ int main(){
           }
           else if(strcmp(tempSTR, "$$")==0){
             sprintf(tempSTR, "%d", getpid());
-            inputArray[arrayCounter] = strdup(tempSTR);
+            inputArray[arrayCounter] = strdup(replaceDollarSigns(tempSTR, "$$", getpid()));
             arrayCounter++;
           }
           else{
@@ -138,6 +200,43 @@ int main(){
 return 0;
 }
 
+char replaceDollarSignsHelper(char *string, char *dollarSigns){
+  int pid = getpid();
+  char pidStringForm[2048];
+  sprintf(pidStringForm, "%d", pid);
+
+  char *outputResult;
+  int i=0;
+  int count = 0;
+  int pidStringFormLen = strlen(pidStringForm);
+  int oldPidLen = strlen(dollarSigns);
+
+  for(i=0; string[i]!='\0'; i++){
+    if(strstr(&string[i], dollarSigns) == &string[i]){
+      count++;
+      i += oldPidLen - 1;
+    }
+  }
+
+  outputResult = (char *)malloc(i+count * (pidStringFormLen - oldPidLen)+1);
+  i=0;
+
+  while(*string){
+    if(strstr(string, oldPidLen) == string){
+      strcpy(&outputResult[i], pidStringForm);
+      i+=pidStringFormLen;
+      string+=oldPidLen;
+
+    }
+    else{
+      outputResult[i++] = *string++;
+    }
+  }
+  outputResult[i]= "\0";
+
+  return outputResult;
+
+}
 
 void catchCTRLC(int signo){
   //char *message = " Caught SIGINT/CTRLC!\n";
@@ -207,9 +306,9 @@ void interpretUserCommand(char *uIn, char *myArray[2049], int arrayCnt){
   else if(testCommand == 0){
     testCommand = 1;
   }
-  else if(strcmp(uIn, "echo")==0 && myArray[1] != NULL && strcmp(myArray[1], "$$")== 0){
-    printf("%d\n", getpid());
-  }
+  // else if(strcmp(uIn, "echo")==0 && myArray[1] != NULL && strcmp(myArray[1], "$$")== 0){
+  //   printf("%d\n", getpid());
+  // }
 
 
 
