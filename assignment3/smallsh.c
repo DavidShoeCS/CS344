@@ -15,7 +15,7 @@ int status = 0;
 int backGroundCheck = 0;
 int allowBG = 1;
 
-int testCommand = 1;
+int CTRLZ_switch = 1;
 
 /*take user input and do actions based on what the user typed*/
 void interpretUserCommand(char* uIn, char *myArray[2049], int);
@@ -24,8 +24,8 @@ void printArrayHelper(char* myArray[2049], int);
 
 void getStatus(int st); /*idea from lecture*/
 
-void catchCTRLC(int signo);
-void catchCTRLZ(int sign);
+void catchCTRLC(int signo); /*catch interruption signal*/
+void catchCTRLZ(int sign); /*catch exit signal*/
 
 
 char *iFile = NULL;
@@ -34,68 +34,41 @@ char *oFile = NULL;
 int fileWriteStatus = -1;
 int fileReadStatus = -1;
 
-char *replaceDollarSigns(const char *string, const char *oldString, int PID){
-  char newString[100];
-  sprintf(newString, "%d", PID);
-  char *res;
-  int i=0;
-  int count = 0;
-  int newStringLen = strlen(newString);
-  int oldStringLen = strlen(oldString);
 
-  for(i=0; string[i] != '\0'; i++){
-    if(strstr(&string[i], oldString) == &string[i]){
-      count++;
-      i+=oldStringLen - 1;
-    }
-  }
+/*Function to find if a user uses "$$, and replaces it with the pid.*/
+char *replaceDollarSigns(const char *string, const char *dollSigns) { /*Idea and help for this from stack overflow!*/
+    char newString[100];
+    sprintf(newString, "%d", getpid()); /*get pid into what we will replace $$ with*/
+    char *res;
+    int i = 0;
+    int count = 0;
+    int newStrlen = strlen(newString);
+    int oldStrLen = strlen(dollSigns);
 
-  res = (char *)malloc(i+ count * (newStringLen - oldStringLen) +1);
-  i=0;
-  while(*string){
-    if(strstr(string, oldString) == string){
-      strcpy(&res[i], newString);
-      i+=newStringLen;
-      string+=oldStringLen;
-    }
-    else{
-      res[i++] = *string++;
-    }
-    res[i] = "\0";
-    return res;
-  }
-
-}
-//-------------
-char *replaceWord(const char *s, const char *oldW, int PID) {
-    char newW[100];
-    sprintf(newW, "%d", PID);
-    char *result;
-    int i, count = 0, newWlen = strlen(newW) , oldWlen = strlen(oldW);
-
-    for (i = 0; s[i] != '\0'; i++) {
-        if (strstr(&s[i], oldW) == &s[i]) {
+    for (i = 0; string[i] != '\0'; i++) {
+        if (strstr(&string[i], dollSigns) == &string[i]) { /*if it matches $$*/
             count++;
-            i += oldWlen - 1;
+            i += oldStrLen - 1;
         }
     }
 
-    result = (char *)malloc(i + count * (newWlen - oldWlen) + 1);
+    res = (char *)malloc(i + count * (newStrlen - oldStrLen) + 1); /*make space for our result*/
 
     i = 0;
-    while (*s) {
-        if (strstr(s, oldW) == s) {
-            strcpy(&result[i], newW);
-            i += newWlen;
-            s += oldWlen;
+    while (*string) { /*while string isnt null, keep looking and comparing characters*/
+        if (strstr(string, dollSigns) == string) {
+            strcpy(&res[i], newString);
+            i += newStrlen;
+            string += oldStrLen;
         }
         else
-            result[i++] = *s++;
+            res[i++] = *string++;
     }
 
-    result[i] = '\0';
-    return result;
+    res[i] = '\0'; /*add new line to the end of our result*/
+    return res;
 }
+
 
 
 int main(){
@@ -151,9 +124,8 @@ int main(){
             sscanf(token, "%s", tempSTR);
             oFile = strdup(tempSTR);
           }
-          else if(strcmp(tempSTR, "$$")==0){
-            sprintf(tempSTR, "%d", getpid());
-            inputArray[arrayCounter] = strdup(replaceDollarSigns(tempSTR, "$$", getpid()));
+          else if(strstr(tempSTR, "$$")){
+            inputArray[arrayCounter] = strdup(replaceDollarSigns(tempSTR, "$$"));
             arrayCounter++;
           }
           else{
@@ -200,43 +172,7 @@ int main(){
 return 0;
 }
 
-char replaceDollarSignsHelper(char *string, char *dollarSigns){
-  int pid = getpid();
-  char pidStringForm[2048];
-  sprintf(pidStringForm, "%d", pid);
 
-  char *outputResult;
-  int i=0;
-  int count = 0;
-  int pidStringFormLen = strlen(pidStringForm);
-  int oldPidLen = strlen(dollarSigns);
-
-  for(i=0; string[i]!='\0'; i++){
-    if(strstr(&string[i], dollarSigns) == &string[i]){
-      count++;
-      i += oldPidLen - 1;
-    }
-  }
-
-  outputResult = (char *)malloc(i+count * (pidStringFormLen - oldPidLen)+1);
-  i=0;
-
-  while(*string){
-    if(strstr(string, oldPidLen) == string){
-      strcpy(&outputResult[i], pidStringForm);
-      i+=pidStringFormLen;
-      string+=oldPidLen;
-
-    }
-    else{
-      outputResult[i++] = *string++;
-    }
-  }
-  outputResult[i]= "\0";
-
-  return outputResult;
-
-}
 
 void catchCTRLC(int signo){
   //char *message = " Caught SIGINT/CTRLC!\n";
@@ -249,12 +185,12 @@ void catchCTRLZ(int sign){
   if(allowBG == 1){
     allowBG = 0;
     write(1, "\nentering foreground-only mode (& is now ignored)\n", 50);
-    testCommand = 0;
+    CTRLZ_switch = 0;
   }
   else{
     allowBG = 1;
     write(1, "\nExiting foreground-only mode\n", 30);
-    testCommand = 0;
+    CTRLZ_switch = 0;
   }
 
 }
@@ -303,12 +239,9 @@ void interpretUserCommand(char *uIn, char *myArray[2049], int arrayCnt){
   else if(strcmp(uIn, "") == 0){
       ;
   }
-  else if(testCommand == 0){
-    testCommand = 1;
+  else if(CTRLZ_switch == 0){
+    CTRLZ_switch = 1;
   }
-  // else if(strcmp(uIn, "echo")==0 && myArray[1] != NULL && strcmp(myArray[1], "$$")== 0){
-  //   printf("%d\n", getpid());
-  // }
 
 
 
@@ -332,13 +265,13 @@ void interpretUserCommand(char *uIn, char *myArray[2049], int arrayCnt){
         if (iFile != NULL){
           fileReadStatus = open(iFile, O_RDONLY);
           if(fileReadStatus == -1){
-            printf("Cannot open %s for input\n", iFile);
+            printf("Cannot open %s for input\n", iFile); /*file doesnt exist, throw error to user*/
             fflush(stdout);
             _exit(1);
           }
 
           if(dup2(fileReadStatus, 0) == -1){
-              perror("error in read dup");
+              perror("error in read dup"); /*dup2 fails, tell the user*/
               _exit(1);
           }
           close(fileReadStatus);
@@ -390,10 +323,10 @@ void interpretUserCommand(char *uIn, char *myArray[2049], int arrayCnt){
     usleep(100000);
     forkPID = waitpid(-1, &status, WNOHANG);           //Check if any process has completed; Returns 0 if no terminated processes
     while(forkPID > 0){
-        printf("background process, %i, is done: ", forkPID); /*FIX MEEEEEEEE*/
+        printf("background process, %i, is done: ", forkPID); 
         fflush(stdout);
         getStatus(status);
-        forkPID = waitpid(-1, &status, WNOHANG);
+        forkPID = waitpid(-1, &status, WNOHANG); /* wait until all processes are done*/
     }
 
 }
