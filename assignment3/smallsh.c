@@ -15,7 +15,7 @@ int status = 0;
 int backGroundCheck = 0;
 int allowBG = 1;
 
-int CTRLZ_switch = 1;
+int CTRLZ_switch = 1; /*flag for help when user uses ctrl_z*/
 
 /*take user input and do actions based on what the user typed*/
 void interpretUserCommand(char* uIn, char *myArray[2049], int);
@@ -124,7 +124,7 @@ int main(){
             sscanf(token, "%s", tempSTR);
             oFile = strdup(tempSTR);
           }
-          else if(strstr(tempSTR, "$$")){
+          else if(strstr(tempSTR, "$$")){ /*If the user enters $$, replace with pid*/
             inputArray[arrayCounter] = strdup(replaceDollarSigns(tempSTR, "$$"));
             arrayCounter++;
           }
@@ -156,7 +156,7 @@ int main(){
 
 
 
-    interpretUserCommand(userCommand, inputArray, arrayCounter);
+    interpretUserCommand(userCommand, inputArray, arrayCounter); /*pass input array into a function that decides what to do*/
 
 
 
@@ -181,15 +181,15 @@ void catchCTRLC(int signo){
 
 }
 
-void catchCTRLZ(int sign){
+void catchCTRLZ(int sign){ /*Use this for when user uses ctrl-z function*/
   if(allowBG == 1){
     allowBG = 0;
-    write(1, "\nentering foreground-only mode (& is now ignored)\n", 50);
+    write(1, "\nentering foreground-only mode (& is now ignored)\n", 50); /*tell user they are in foreground only mode*/
     CTRLZ_switch = 0;
   }
   else{
     allowBG = 1;
-    write(1, "\nExiting foreground-only mode\n", 30);
+    write(1, "\nExiting foreground-only mode\n", 30); /*tell user they can use background now*/
     CTRLZ_switch = 0;
   }
 
@@ -233,7 +233,7 @@ void interpretUserCommand(char *uIn, char *myArray[2049], int arrayCnt){
   else if(strcmp(uIn, "#") == 0 || uIn[0] == '#'){
       ; /*Do nothing*/
   }
-  else if(strcmp(uIn, "&") == 0){
+  else if(strcmp(uIn, "&") == 0){ /*catch if user wants to run their command in background*/
       ; /*Do nothing*/
   }
   else if(strcmp(uIn, "") == 0){
@@ -246,7 +246,7 @@ void interpretUserCommand(char *uIn, char *myArray[2049], int arrayCnt){
 
 
   else{
-    forkPID = fork();
+    forkPID = fork(); /*create a new pid and run execvp stuff*/
 
     switch(forkPID){
       case -1: {
