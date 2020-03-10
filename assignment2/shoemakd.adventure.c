@@ -17,7 +17,7 @@
 #define NUM_OF_ROOMS (int)7
 #define MIN_CONS (int)3
 #define MAX_NAME_LENGTH (int)9
-const char DIRECTORYNAME[32];
+const char DIRECTORYNAME[32]
 pthread_mutex_t myMutex;
 
 typedef struct roomNode{  /*Structure of a room.  Holds the values a room has*/

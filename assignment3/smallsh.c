@@ -28,10 +28,10 @@ void catchCTRLC(int signo); /*catch interruption signal*/
 void catchCTRLZ(int sign); /*catch exit signal*/
 
 
-char *iFile = NULL;
+char *iFile = NULL; /*initialize in and out files*/
 char *oFile = NULL;
 
-int fileWriteStatus = -1;
+int fileWriteStatus = -1; /*status of trying to read and write to files, used to find errors*/
 int fileReadStatus = -1;
 
 
@@ -69,8 +69,6 @@ char *replaceDollarSigns(const char *string, const char *dollSigns) { /*Idea and
     return res;
 }
 
-
-
 int main(){
   char uInput[2048];
   char *inputArray[2049];
@@ -78,8 +76,6 @@ int main(){
   char lastArg[2048]; /*store the last element of user input array here. could be & for background process*/
   char tempSTR[2048];/*use this to help clean new line elements from strings*/
   char *testArray[2049];
-
-
 
 
   backGroundCheck = 0; /*initalize to not want to run stuff in background.  User can change by specifying '&'*/
@@ -153,20 +149,9 @@ int main(){
       backGroundCheck = 1;
     }
 
-
-
-
     interpretUserCommand(userCommand, inputArray, arrayCounter); /*pass input array into a function that decides what to do*/
 
-
-
-
-
-
   } /* end of big while loop*/
-
-
-
 
 
 return 0;
@@ -286,7 +271,7 @@ void interpretUserCommand(char *uIn, char *myArray[2049], int arrayCnt){
           }
 
           if(dup2(fileWriteStatus, 1) == -1){
-            perror("error in write dup");
+            perror("error in write dup"); /*display if there is an error writing to file*/
             _exit(1);
            }
            close(fileWriteStatus);
@@ -294,7 +279,7 @@ void interpretUserCommand(char *uIn, char *myArray[2049], int arrayCnt){
 
         fflush(stdout);
         if(execvp(uIn, myArray)){
-          printf("%s: no such file or directory\n", uIn);
+          printf("%s: no such file or directory\n", uIn); /*the file or directory the user wants doesnt exist*/
           fflush(stdout);
 
           _Exit(1); /*abort if child fails*/
@@ -303,7 +288,7 @@ void interpretUserCommand(char *uIn, char *myArray[2049], int arrayCnt){
       }
       default: {
 
-        if(backGroundCheck == 0 || allowBG == 0){
+        if(backGroundCheck == 0 || allowBG == 0){ /*check if using the background is valid*/
           waitpid(forkPID, &status, 0);
         }
         else{
@@ -323,7 +308,7 @@ void interpretUserCommand(char *uIn, char *myArray[2049], int arrayCnt){
     usleep(100000);
     forkPID = waitpid(-1, &status, WNOHANG);           //Check if any process has completed; Returns 0 if no terminated processes
     while(forkPID > 0){
-        printf("background process, %i, is done: ", forkPID); 
+        printf("background process, %i, is done: ", forkPID);
         fflush(stdout);
         getStatus(status);
         forkPID = waitpid(-1, &status, WNOHANG); /* wait until all processes are done*/
@@ -341,28 +326,3 @@ void printArrayHelper(char *myArray[2049], int arrayLength){
   }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/**/

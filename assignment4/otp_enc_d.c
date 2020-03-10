@@ -9,11 +9,15 @@
 void error(const char *msg) { perror(msg); exit(1); } // Error function used for reporting issues
 
 
+char *readMessageFile(char *myFile);
+char *encryptMessage(char listOfChars[], char key[], char message[]);
+
 int main(int argc, char const *argv[]) {
 
   int listenSocketFD, establishedConnectionFD, portNumber, charsRead;
   socklen_t sizeOfClientInfo;
   char buffer[256];
+  char buffer2[256];
   struct sockaddr_in serverAddress, clientAddress;
 
   if (argc < 2) { fprintf(stderr,"USAGE: %s port\n", argv[0]); exit(1); } // Check usage & args
@@ -40,10 +44,16 @@ int main(int argc, char const *argv[]) {
   if (establishedConnectionFD < 0) error("ERROR on accept");
 
   // Get the message from the client and display it
+  //get file name
   memset(buffer, '\0', 256);
   charsRead = recv(establishedConnectionFD, buffer, 255, 0); // Read the client's message from the socket
   if (charsRead < 0) error("ERROR reading from socket");
   printf("\nSERVER: I received this from the client: \"%s\"\n", buffer);
+
+  char *listOfChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ ";
+
+  char *myMessageB = strdup(readMessageFile(buffer)); /*read from file and store into variable that we will use later*/
+
 
   // Send a Success message back to the client
   charsRead = send(establishedConnectionFD, "I am the server, and I got your file", 39, 0); // Send success back
@@ -51,19 +61,100 @@ int main(int argc, char const *argv[]) {
 
 
   // Get the message from the client and display it
-  memset(buffer, '\0', 256);
-  charsRead = recv(establishedConnectionFD, buffer, 255, 0); // Read the client's message from the socket
+  memset(buffer2, '\0', 256);
+  charsRead = recv(establishedConnectionFD, buffer2, 255, 0); // Read the client's message from the socket
   if (charsRead < 0) error("ERROR reading from socket");
-  printf("SERVER: I received this from the client: \"%s\"\n", buffer);
+  printf("SERVER: I received this from the client: \"%s\"\n", buffer2);
+
+
+  //strdup so we dont point to something that will change
+  char *myKey = strdup(readMessageFile(buffer2)); /*read from file and store into variable that we will use later*/
+
 
   // Send a Success message back to the client
   charsRead = send(establishedConnectionFD, "I am the server, and I got your key", 39, 0); // Send success back
   if (charsRead < 0) error("ERROR writing to socket");
 
 
+  encryptMessage(listOfChars, myKey, myMessageB);
+
 
   close(establishedConnectionFD); // Close the existing socket which is connected to the client
   close(listenSocketFD); // Close the listening socket
 
   return 0;
+}
+
+char *encryptMessage(char listOfChars[], char *key, char *message){
+  char *encMessage;
+  int mLength = strlen(message);
+  int keyLength = strlen(key);
+  int messageNumArray[mLength+1];
+  int keyNumArray[mLength+1];
+  int encodedMessageNumArray[mLength+1];
+  int i, j;
+
+  if(keyLength < mLength){
+    printf("\nERROR KEY LENGTH TOO SHORT\n");
+    exit(0);
+  }
+
+  for(i=0; i<mLength; i++){
+    for(j=0; j<strlen(listOfChars); j++){
+      if(message[i] == listOfChars[j]){
+        messageNumArray[i] = j;
+      }
+    }
+  }
+  printf("----------\n");
+
+  for(i=0;i<mLength;i++){
+    for(j=0;j<strlen(listOfChars);j++){
+      if(key[i]==listOfChars[j]){
+        keyNumArray[i] = j;
+      }
+    }
+  }
+  printf("\n");
+  printf("test array here:\n");
+  for(i=0;i<mLength;i++){
+    printf("message[%d]->%d\n", i, messageNumArray[i]);
+    printf("key[%d]->%d\n", i, keyNumArray[i]);
+    encodedMessageNumArray[i] = (messageNumArray[i]+keyNumArray[i])%26;
+  }
+
+  printf("\n------testing encoded num array-----\n");
+  for(i=0;i<mLength;i++){
+    printf("encodedMessage[%d]->%d\n", i, encodedMessageNumArray[i]);
+  }
+  printf("\n------turning numbers into letters test-----\n");
+
+
+
+
+
+  //strcpy(encMessage,"hi");
+  return encMessage;
+}
+
+
+
+//read and put the message from a file into a variable
+char *readMessageFile(char *myFile){
+
+  char str[100000];//intitalize variable
+
+  FILE *file = fopen(myFile, "r+"); //open the file we want
+
+  if(file == NULL){
+    perror("error opening file"); //fails
+    return -1;
+  }
+  else{
+    fgets(str, 100000, file); //read file line
+
+  }
+  fclose(file);
+  return str;
+
 }
