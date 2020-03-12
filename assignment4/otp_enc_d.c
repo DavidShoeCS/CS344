@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,14 +13,12 @@ char *readMessageFile(char *myFile);
 char *encryptMessage(char listOfChars[], char key[], char message[]);
 
 int main(int argc, char const *argv[]) {
+
   int listenSocketFD, establishedConnectionFD, portNumber, charsRead;
   socklen_t sizeOfClientInfo;
-  char buffer[100000];
-  char buffer2[100000];
+  char buffer[256];
+  char buffer2[256];
   struct sockaddr_in serverAddress, clientAddress;
-
-
-
 
   if (argc < 2) { fprintf(stderr,"USAGE: %s port\n", argv[0]); exit(1); } // Check usage & args
 
@@ -34,31 +31,23 @@ int main(int argc, char const *argv[]) {
 
   // Set up the socket
   listenSocketFD = socket(AF_INET, SOCK_STREAM, 0); // Create the socket
-  if (listenSocketFD < 0){
-     perror("ERROR opening socket");
-     exit(1);
-   }
+  if (listenSocketFD < 0) error("ERROR opening socket");
 
   // Enable the socket to begin listening
   if (bind(listenSocketFD, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0) // Connect socket to port
-    perror("ERROR on binding");
+    error("ERROR on binding");
   listen(listenSocketFD, 5); // Flip the socket on - it can now receive up to 5 connections
-
-
 
   // Accept a connection, blocking if one is not available until one connects
   sizeOfClientInfo = sizeof(clientAddress); // Get the size of the address for the client that will connect
   establishedConnectionFD = accept(listenSocketFD, (struct sockaddr *)&clientAddress, &sizeOfClientInfo); // Accept
   if (establishedConnectionFD < 0) error("ERROR on accept");
 
-
-
-  // Get the message from the client and use it
+  // Get the message from the client and display it
   //get file name
-  memset(buffer, '\0', sizeof(buffer));
+  memset(buffer, '\0', 256);
   charsRead = recv(establishedConnectionFD, buffer, 255, 0); // Read the client's message from the socket
   if (charsRead < 0) error("ERROR reading from socket");
-
 
   char *listOfChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ ";
 
@@ -71,7 +60,7 @@ int main(int argc, char const *argv[]) {
 
 
   // Get the message from the client and display it
-  memset(buffer2, '\0', sizeof(buffer2));
+  memset(buffer2, '\0', 256);
   charsRead = recv(establishedConnectionFD, buffer2, 255, 0); // Read the client's message from the socket
   if (charsRead < 0) error("ERROR reading from socket");
 
@@ -90,8 +79,6 @@ int main(int argc, char const *argv[]) {
   if (charsRead < 0) error("ERROR writing to socket");
 
   close(establishedConnectionFD); // Close the existing socket which is connected to the client
-
-
   close(listenSocketFD); // Close the listening socket
 
   return 0;
@@ -138,7 +125,6 @@ char *encryptMessage(char listOfChars[], char *key, char *message){
 
 
 
-
   return encMessage;
 }
 
@@ -159,7 +145,6 @@ char *readMessageFile(char *myFile){
     fgets(str, 100000, file); //read file line
 
   }
-
   fclose(file);
   return str;
 
