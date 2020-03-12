@@ -16,8 +16,8 @@ int main(int argc, char const *argv[]) {
 
   int listenSocketFD, establishedConnectionFD, portNumber, charsRead;
   socklen_t sizeOfClientInfo;
-  char buffer[256];
-  char buffer2[256];
+  char buffer[100000];
+  char buffer2[100000];
   struct sockaddr_in serverAddress, clientAddress;
 
   if (argc < 2) { fprintf(stderr,"USAGE: %s port\n", argv[0]); exit(1); } // Check usage & args
@@ -69,13 +69,12 @@ int main(int argc, char const *argv[]) {
   char *myKey = strdup(readMessageFile(buffer2)); /*read from file and store into variable that we will use later*/
 
 
-  char encryptedMessageToSend[strlen(buffer)];
+
 
   //encryptedMessageToSend = encryptMessage(listOfChars, myKey, myMessageB);
-  strcpy(encryptedMessageToSend,encryptMessage(listOfChars, myKey, myMessageB));
 
   // Send a Success message back to the client
-  charsRead = send(establishedConnectionFD, encryptedMessageToSend, strlen(encryptedMessageToSend), 0); // Send success back
+  charsRead = send(establishedConnectionFD, encryptMessage(listOfChars, myKey, myMessageB), strlen(encryptMessage(listOfChars, myKey, myMessageB)), 0); // Send success back
   if (charsRead < 0) error("ERROR writing to socket");
 
   close(establishedConnectionFD); // Close the existing socket which is connected to the client
@@ -122,6 +121,7 @@ char *encryptMessage(char listOfChars[], char *key, char *message){
   for(i=0; i < mLength-1; i++){
     encMessage[i] = listOfChars[encodedMessageNumArray[i]];
   }
+
 
 
 

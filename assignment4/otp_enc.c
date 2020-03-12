@@ -25,7 +25,7 @@ int main(int argc, char const *argv[]) {
     int socketFD, portNumber, charsWritten, charsRead;
     struct sockaddr_in serverAddress;
     struct hostent* serverHostInfo;
-    char buffer[256];
+    char buffer[100000];
 
     // Set up the server address struct
   	memset((char*)&serverAddress, '\0', sizeof(serverAddress)); // Clear out the address struct
@@ -53,7 +53,7 @@ int main(int argc, char const *argv[]) {
     memset(buffer, '\0', sizeof(buffer)); // Clear out the buffer again for reuse
     charsRead = recv(socketFD, buffer, sizeof(buffer) - 1, 0); // Read data from the socket, leaving \0 at end
     if (charsRead < 0) error("CLIENT: ERROR reading from socket");
-    printf("CLIENT: I received this from the server: \"%s\"\n", buffer);
+
 
     // Send message to server
     charsWritten = send(socketFD, argv[2], strlen(argv[2]), 0); // Write to the server
@@ -65,7 +65,7 @@ int main(int argc, char const *argv[]) {
     memset(buffer, '\0', sizeof(buffer)); // Clear out the buffer again for reuse
     charsRead = recv(socketFD, buffer, sizeof(buffer) - 1, 0); // Read data from the socket, leaving \0 at end
     if (charsRead < 0) error("CLIENT: ERROR reading from socket");
-    printf("CLIENT: I received this from the server: \"%s\"\n", buffer);
+    printf("%s\n", buffer);
 
 
     close(socketFD); // Close the socket
