@@ -69,6 +69,7 @@ int main(int argc, char const *argv[]) {
     if (charsRead < 0) error("CLIENT: ERROR reading from socket");
     printf("%s\n",buffer);
 
+
     //next step SAVE BUFFER AND USE IT!!! DECODE
 
 

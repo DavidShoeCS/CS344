@@ -138,6 +138,7 @@ char *encryptMessage(char listOfChars[], char *key, char *message){
 
 
 
+
   return encMessage;
 }
 
@@ -158,6 +159,7 @@ char *readMessageFile(char *myFile){
     fgets(str, 100000, file); //read file line
 
   }
+
   fclose(file);
   return str;
 

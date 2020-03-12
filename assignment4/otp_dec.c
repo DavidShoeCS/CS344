@@ -20,7 +20,7 @@ int main(int argc, char const *argv[]) {
     exit(0);
    }
 
-
+   
   else{
     int socketFD, portNumber, charsWritten, charsRead;
     struct sockaddr_in serverAddress;
