@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,17 +10,15 @@ void error(const char *msg) { perror(msg); exit(1); } // Error function used for
 
 
 char *readMessageFile(char *myFile);
-char *encryptMessage(char listOfChars[], char key[], char message[]);
+char *decryptMessage(char listOfChars[], char key[], char message[]);
 
 int main(int argc, char const *argv[]) {
+
   int listenSocketFD, establishedConnectionFD, portNumber, charsRead;
   socklen_t sizeOfClientInfo;
-  char buffer[100000];
-  char buffer2[100000];
+  char buffer[256];
+  char buffer2[256];
   struct sockaddr_in serverAddress, clientAddress;
-
-
-
 
   if (argc < 2) { fprintf(stderr,"USAGE: %s port\n", argv[0]); exit(1); } // Check usage & args
 
@@ -34,35 +31,27 @@ int main(int argc, char const *argv[]) {
 
   // Set up the socket
   listenSocketFD = socket(AF_INET, SOCK_STREAM, 0); // Create the socket
-  if (listenSocketFD < 0){
-     perror("ERROR opening socket");
-     exit(1);
-   }
+  if (listenSocketFD < 0) error("ERROR opening socket");
 
   // Enable the socket to begin listening
   if (bind(listenSocketFD, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0) // Connect socket to port
-    perror("ERROR on binding");
+    error("ERROR on binding");
   listen(listenSocketFD, 5); // Flip the socket on - it can now receive up to 5 connections
-
-
 
   // Accept a connection, blocking if one is not available until one connects
   sizeOfClientInfo = sizeof(clientAddress); // Get the size of the address for the client that will connect
   establishedConnectionFD = accept(listenSocketFD, (struct sockaddr *)&clientAddress, &sizeOfClientInfo); // Accept
   if (establishedConnectionFD < 0) error("ERROR on accept");
 
-
-
-  // Get the message from the client and use it
+  // Get the message from the client and display it
   //get file name
-  memset(buffer, '\0', sizeof(buffer));
+  memset(buffer, '\0', 256);
   charsRead = recv(establishedConnectionFD, buffer, 255, 0); // Read the client's message from the socket
   if (charsRead < 0) error("ERROR reading from socket");
 
-
   char *listOfChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ ";
 
-  char *myMessageB = strdup(readMessageFile(buffer)); /*read from file and store into variable that we will use later*/
+  char *myMessageE = strdup(readMessageFile(buffer)); /*read from file and store into variable that we will use later*/
 
 
   // Send a Success message back to the client
@@ -71,7 +60,7 @@ int main(int argc, char const *argv[]) {
 
 
   // Get the message from the client and display it
-  memset(buffer2, '\0', sizeof(buffer2));
+  memset(buffer2, '\0', 256);
   charsRead = recv(establishedConnectionFD, buffer2, 255, 0); // Read the client's message from the socket
   if (charsRead < 0) error("ERROR reading from socket");
 
@@ -80,40 +69,33 @@ int main(int argc, char const *argv[]) {
   char *myKey = strdup(readMessageFile(buffer2)); /*read from file and store into variable that we will use later*/
 
 
-  char encryptedMessageToSend[strlen(buffer)];
+  char decryptedMessageToSend[strlen(buffer)];
 
   //encryptedMessageToSend = encryptMessage(listOfChars, myKey, myMessageB);
-  strcpy(encryptedMessageToSend,encryptMessage(listOfChars, myKey, myMessageB));
+  strcpy(decryptedMessageToSend,decryptMessage(listOfChars, myKey, myMessageE));
 
   // Send a Success message back to the client
-  charsRead = send(establishedConnectionFD, encryptedMessageToSend, strlen(encryptedMessageToSend), 0); // Send success back
+  charsRead = send(establishedConnectionFD, decryptedMessageToSend, strlen(decryptedMessageToSend), 0); // Send success back
   if (charsRead < 0) error("ERROR writing to socket");
 
   close(establishedConnectionFD); // Close the existing socket which is connected to the client
-
-
   close(listenSocketFD); // Close the listening socket
 
   return 0;
 }
 
-char *encryptMessage(char listOfChars[], char *key, char *message){
-  int mLength = strlen(message);
-  char encMessage[mLength];
+char *decryptMessage(char listOfChars[], char *key, char *encMessage){
+  int mLength = strlen(encMessage);
+  char decMessage[mLength];
   int keyLength = strlen(key);
   int messageNumArray[mLength+1];
   int keyNumArray[mLength+1];
-  int encodedMessageNumArray[mLength+1];
+  int decodedMessageNumArray[mLength+1];
   int i, j;
-
-  if(keyLength < mLength){
-    printf(stderr,"\nERROR KEY LENGTH TOO SHORT\n");
-    exit(0);
-  }
 
   for(i=0; i<mLength; i++){
     for(j=0; j<strlen(listOfChars); j++){
-      if(message[i] == listOfChars[j]){
+      if(encMessage[i] == listOfChars[j]){
         messageNumArray[i] = j;
       }
     }
@@ -129,16 +111,16 @@ char *encryptMessage(char listOfChars[], char *key, char *message){
   }
 
   for(i=0;i<mLength;i++){
-    encodedMessageNumArray[i] = (messageNumArray[i]+keyNumArray[i])%27;
+    decodedMessageNumArray[i] = (messageNumArray[i]-keyNumArray[i])%27;
+    if(decodedMessageNumArray[i] < 0){
+      decodedMessageNumArray[i] += 27;
+    }
   }
-
   for(i=0; i < mLength-1; i++){
-    encMessage[i] = listOfChars[encodedMessageNumArray[i]];
+    decMessage[i] = listOfChars[decodedMessageNumArray[i]];
   }
 
-
-
-  return encMessage;
+  return decMessage;
 }
 
 

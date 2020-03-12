@@ -25,7 +25,7 @@ int main(int argc, char const *argv[]) {
     int socketFD, portNumber, charsWritten, charsRead;
     struct sockaddr_in serverAddress;
     struct hostent* serverHostInfo;
-    char buffer[100000];
+    char buffer[256];
 
     // Set up the server address struct
   	memset((char*)&serverAddress, '\0', sizeof(serverAddress)); // Clear out the address struct
@@ -55,13 +55,14 @@ int main(int argc, char const *argv[]) {
     memset(buffer, '\0', sizeof(buffer)); // Clear out the buffer again for reuse
     charsRead = recv(socketFD, buffer, sizeof(buffer) - 1, 0); // Read data from the socket, leaving \0 at end
     if (charsRead < 0) error("CLIENT: ERROR reading from socket");
-    //printf("here");
+
+
     // Send message to server
     //send key file name
     charsWritten = send(socketFD, argv[2], strlen(argv[2]), 0); // Write to the server
     if (charsWritten < 0) error("CLIENT: ERROR writing to socket");
     if (charsWritten < strlen(argv[2])) printf("CLIENT: WARNING: Not all data written to socket!\n");
-    //printf("here");
+
     // Get return message from server
     //if daemon got key file name, success
     memset(buffer, '\0', sizeof(buffer)); // Clear out the buffer again for reuse
@@ -69,7 +70,6 @@ int main(int argc, char const *argv[]) {
     if (charsRead < 0) error("CLIENT: ERROR reading from socket");
     printf("%s\n",buffer);
 
-    //next step SAVE BUFFER AND USE IT!!! DECODE
 
 
     close(socketFD); // Close the socket
