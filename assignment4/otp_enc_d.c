@@ -16,8 +16,8 @@ int main(int argc, char const *argv[]) {
 
   int listenSocketFD, establishedConnectionFD, portNumber, charsRead;
   socklen_t sizeOfClientInfo;
-  char buffer[100000];
-  char buffer2[100000];
+  char buffer[1000000];
+  char buffer2[1000000];
   struct sockaddr_in serverAddress, clientAddress;
 
   if (argc < 2) { fprintf(stderr,"USAGE: %s port\n", argv[0]); exit(1); } // Check usage & args
@@ -45,8 +45,8 @@ int main(int argc, char const *argv[]) {
 
   // Get the message from the client and display it
   //get file name
-  memset(buffer, '\0', 256);
-  charsRead = recv(establishedConnectionFD, buffer, 255, 0); // Read the client's message from the socket
+  bzero(buffer, 100000);
+  charsRead = recv(establishedConnectionFD, buffer, 99000, 0); // Read the client's message from the socket
   if (charsRead < 0) error("ERROR reading from socket");
 
   char *listOfChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ ";
@@ -60,8 +60,8 @@ int main(int argc, char const *argv[]) {
 
 
   // Get the message from the client and display it
-  memset(buffer2, '\0', 256);
-  charsRead = recv(establishedConnectionFD, buffer2, 255, 0); // Read the client's message from the socket
+  bzero(buffer2, 100000);
+  charsRead = recv(establishedConnectionFD, buffer2, 99000, 0); // Read the client's message from the socket
   if (charsRead < 0) error("ERROR reading from socket");
 
 
@@ -69,14 +69,16 @@ int main(int argc, char const *argv[]) {
   char *myKey = strdup(readMessageFile(buffer2)); /*read from file and store into variable that we will use later*/
 
 
-
+  printf("length of encrypted message before sending->%d\n", strlen(encryptMessage(listOfChars, myKey, myMessageB)));
 
   //encryptedMessageToSend = encryptMessage(listOfChars, myKey, myMessageB);
 
   // Send a Success message back to the client
-  charsRead = send(establishedConnectionFD, encryptMessage(listOfChars, myKey, myMessageB), strlen(encryptMessage(listOfChars, myKey, myMessageB)), 0); // Send success back
-  if (charsRead < 0) error("ERROR writing to socket");
-
+  // charsRead = send(establishedConnectionFD, encryptMessage(listOfChars, myKey, myMessageB), strlen(encryptMessage(listOfChars, myKey, myMessageB)), 0); // Send success back
+  // if (charsRead < 0) error("ERROR writing to socket");
+  int check2;
+  check2 = send(establishedConnectionFD, encryptMessage(listOfChars, myKey, myMessageB), strlen(myMessageB), 0);
+  printf( "CHECK DAEMON HERE->%d\n ", check2);
   close(establishedConnectionFD); // Close the existing socket which is connected to the client
   close(listenSocketFD); // Close the listening socket
 
@@ -85,16 +87,17 @@ int main(int argc, char const *argv[]) {
 
 char *encryptMessage(char listOfChars[], char *key, char *message){
   int mLength = strlen(message);
-  char encMessage[mLength];
+  char* encMessage;
   int keyLength = strlen(key);
   int messageNumArray[mLength+1];
   int keyNumArray[mLength+1];
   int encodedMessageNumArray[mLength+1];
   int i, j;
 
-  printf("hey im in the encrypty function");
+
+  encMessage = malloc(1000000 * sizeof(char));
   if(keyLength < mLength){
-    printf(stderr,"\nERROR KEY LENGTH TOO SHORT\n");
+    fprintf(stderr,"\nERROR KEY LENGTH TOO SHORT\n");
     exit(0);
   }
 
@@ -122,8 +125,7 @@ char *encryptMessage(char listOfChars[], char *key, char *message){
   for(i=0; i < mLength-1; i++){
     encMessage[i] = listOfChars[encodedMessageNumArray[i]];
   }
-
-
+  encMessage[i] = '\0';
 
 
   return encMessage;
@@ -134,13 +136,15 @@ char *encryptMessage(char listOfChars[], char *key, char *message){
 //read and put the message from a file into a variable
 char *readMessageFile(char *myFile){
 
-  char str[100000];//intitalize variable
+  char* str;//intitalize variable
+
+  str = malloc(100000 * sizeof(char));
 
   FILE *file = fopen(myFile, "r+"); //open the file we want
 
   if(file == NULL){
     perror("error opening file"); //fails
-    return -1;
+    exit(0);
   }
   else{
     fgets(str, 100000, file); //read file line

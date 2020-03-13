@@ -10,12 +10,10 @@
 void error(const char *msg) { perror(msg); exit(0); } // Error function used for reporting issues
 
 int main(int argc, char const *argv[]) {
-
-  printf("hey im in enc main");
   //read from keygen file
   //read from given text file, store into variable
   //send stored text file over sockets
-
+  fflush(stdout);
   if (argc < 3) { // Check usage & args
     fprintf(stderr,"USAGE: %s textFile port\n", argv[0]);
     exit(0);
@@ -26,7 +24,7 @@ int main(int argc, char const *argv[]) {
     int socketFD, portNumber, charsWritten, charsRead;
     struct sockaddr_in serverAddress;
     struct hostent* serverHostInfo;
-    char buffer[100000];
+    char buffer[1000000];
 
     // Set up the server address struct
   	memset((char*)&serverAddress, '\0', sizeof(serverAddress)); // Clear out the address struct
@@ -48,10 +46,10 @@ int main(int argc, char const *argv[]) {
     // Send message to server
   	charsWritten = send(socketFD, argv[1], strlen(argv[1]), 0); // Write to the server
   	if (charsWritten < 0) error("CLIENT: ERROR writing to socket");
-  	if (charsWritten < strlen(argv[1])) printf("CLIENT: WARNING: Not all data written to socket!\n");
+  	if (charsWritten < strlen(argv[1])) fprintf(stderr, "CLIENT: WARNING: Not all data written to socket!\n");
 
     // Get return message from server
-    memset(buffer, '\0', sizeof(buffer)); // Clear out the buffer again for reuse
+    bzero(buffer, sizeof(buffer)); // Clear out the buffer again for reuse
     charsRead = recv(socketFD, buffer, sizeof(buffer) - 1, 0); // Read data from the socket, leaving \0 at end
     if (charsRead < 0) error("CLIENT: ERROR reading from socket");
 
@@ -59,15 +57,28 @@ int main(int argc, char const *argv[]) {
     // Send message to server
     charsWritten = send(socketFD, argv[2], strlen(argv[2]), 0); // Write to the server
     if (charsWritten < 0) error("CLIENT: ERROR writing to socket");
-    if (charsWritten < strlen(argv[2])) printf("CLIENT: WARNING: Not all data written to socket!\n");
+    if (charsWritten < strlen(argv[2])) fprintf(stderr, "CLIENT: WARNING: Not all data written to socket!\n");
 
 
     // Get return message from server
-    memset(buffer, '\0', sizeof(buffer)); // Clear out the buffer again for reuse
-    charsRead = recv(socketFD, buffer, sizeof(buffer) - 1, 0); // Read data from the socket, leaving \0 at end
-    if (charsRead < 0) error("CLIENT: ERROR reading from socket");
-    printf("%s\n", buffer);
+    bzero(buffer, sizeof(buffer)); // Clear out the buffer again for reuse
+    // charsRead = recv(socketFD, buffer, sizeof(buffer), 0); // Read data from the socket, leaving \0 at end
+    // if (charsRead < 0) error("CLIENT: ERROR reading from socket");
+    int check;
+    check = recv(socketFD, buffer, sizeof(buffer)-1, 0);
 
+  //  printf("CHECK CLIENT HERE->%d\n", check);
+
+    if(check < 0){
+      fprintf(stderr, "error reading from socket");
+      exit(1);
+    }
+
+  //  printf("string length of buffer->%d\n", strlen(buffer));
+    //printf("sizeof buffer->%d\n\n", sizeof(buffer));
+
+    printf("%s\n", buffer);
+    fflush(stdout);
 
     close(socketFD); // Close the socket
 

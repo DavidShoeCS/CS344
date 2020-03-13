@@ -20,7 +20,7 @@ int main(int argc, char const *argv[]) {
     exit(0);
    }
 
-   
+
   else{
     int socketFD, portNumber, charsWritten, charsRead;
     struct sockaddr_in serverAddress;
@@ -67,7 +67,7 @@ int main(int argc, char const *argv[]) {
     //if daemon got key file name, success
     memset(buffer, '\0', sizeof(buffer)); // Clear out the buffer again for reuse
     charsRead = recv(socketFD, buffer, sizeof(buffer) - 1, 0); // Read data from the socket, leaving \0 at end
-    if (charsRead < 0) error("CLIENT: ERROR reading from socket");
+    
     printf("%s\n",buffer);
 
 
