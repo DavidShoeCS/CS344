@@ -92,6 +92,7 @@ char *encryptMessage(char listOfChars[], char *key, char *message){
   int encodedMessageNumArray[mLength+1];
   int i, j;
 
+  printf("hey im in the encrypty function");
   if(keyLength < mLength){
     printf(stderr,"\nERROR KEY LENGTH TOO SHORT\n");
     exit(0);

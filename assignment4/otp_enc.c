@@ -11,6 +11,7 @@ void error(const char *msg) { perror(msg); exit(0); } // Error function used for
 
 int main(int argc, char const *argv[]) {
 
+  printf("hey im in enc main");
   //read from keygen file
   //read from given text file, store into variable
   //send stored text file over sockets
