@@ -14,11 +14,11 @@ char *encryptMessage(char listOfChars[], char key[], char message[]);
 
 int main(int argc, char const *argv[]) {
 
-  int listenSocketFD, establishedConnectionFD, portNumber, charsRead;
+  int listenSocketFD, establishedConnectionFD, portNumber, charsRead;//given stuff.  Initializing
   socklen_t sizeOfClientInfo;
   int i;
   int j;
-  char buffer[1000000];
+  char buffer[1000000]; //set buffers to large for sending and receiving data through sockets
   char buffer2[1000000];
   struct sockaddr_in serverAddress, clientAddress;
 
@@ -50,14 +50,14 @@ int main(int argc, char const *argv[]) {
     establishedConnectionFD = accept(listenSocketFD, (struct sockaddr *)&clientAddress, &sizeOfClientInfo); // Accept
     if (establishedConnectionFD < 0) error("ERROR on accept");
 
-    pid_t newPID;
+    pid_t newPID; //create PID
     newPID = fork();
     if(newPID < 0){
       fprintf(stderr, "Fork error");
       exit(1);
     }
 
-    if(newPID==0){
+    if(newPID==0){ //if forking works, do stuff
 
     // Get the message from the client and display it
     //get file name
@@ -85,10 +85,6 @@ int main(int argc, char const *argv[]) {
       char *myKey = strdup(readMessageFile(buffer2)); /*read from file and store into variable that we will use later*/
 
 
-
-
-      //encryptedMessageToSend = encryptMessage(listOfChars, myKey, myMessageB);
-
       // Send a Success message back to the client
       // charsRead = send(establishedConnectionFD, encryptMessage(listOfChars, myKey, myMessageB), strlen(encryptMessage(listOfChars, myKey, myMessageB)), 0); // Send success back
       // if (charsRead < 0) error("ERROR writing to socket");
@@ -100,20 +96,19 @@ int main(int argc, char const *argv[]) {
 
   }
 
-
   close(listenSocketFD); // Close the listening socket
 
   return 0;
 }
 
 char *encryptMessage(char listOfChars[], char *key, char *message){
-  int mLength = strlen(message);
+  int mLength = strlen(message); //length of the message to use
   char* encMessage;
   int keyLength = strlen(key);
-  int messageNumArray[mLength+1];
+  int messageNumArray[mLength+1]; //set number arrays that we will use to store indexes for listOfChars
   int keyNumArray[mLength+1];
   int encodedMessageNumArray[mLength+1];
-  int i, j, countHelp;
+  int i, j, countHelp=0;
 
 
   for(i=0; i<mLength; i++){
@@ -124,41 +119,42 @@ char *encryptMessage(char listOfChars[], char *key, char *message){
     }
   }
 
-  if(countHelp == 0){
-    error("bad character");
+  if(countHelp != mLength){ //if we found
+    error("ERROR: bad character found");
   }
 
-  encMessage = malloc(1000000 * sizeof(char));
-  if(keyLength < mLength){
+  encMessage = malloc(1000000 * sizeof(char)); //allocate space for encrypted message
+  if(keyLength < mLength){ //if the message's length is bigger than the length of the key, give out error
     fprintf(stderr,"ERROR KEY LENGTH TOO SHORT\n");
     exit(1);
   }
 
+  //loop through the message and see if it matches something in listOfChars
   for(i=0; i<mLength; i++){
     for(j=0; j<strlen(listOfChars); j++){
-      if(message[i] == listOfChars[j]){
+      if(message[i] == listOfChars[j]){ //if it matches, yay set save its index into a num array to be used later
         messageNumArray[i] = j;
       }
     }
   }
 
-
+//loop through the key and see if it matches something in listOfChars
   for(i=0;i<mLength;i++){
     for(j=0;j<strlen(listOfChars);j++){
-      if(key[i]==listOfChars[j]){
+      if(key[i]==listOfChars[j]){//if it matches, yay save its index into a num array to be used later
         keyNumArray[i] = j;
       }
     }
   }
 
   for(i=0;i<mLength;i++){
-    encodedMessageNumArray[i] = (messageNumArray[i]+keyNumArray[i])%27;
+    encodedMessageNumArray[i] = (messageNumArray[i]+keyNumArray[i])%27; // add our two saved indexes together and mod by 27, to get an appropriate value in our listOfChars
   }
 
   for(i=0; i < mLength-1; i++){
-    encMessage[i] = listOfChars[encodedMessageNumArray[i]];
+    encMessage[i] = listOfChars[encodedMessageNumArray[i]]; //save the actual character into a character array
   }
-  encMessage[i] = '\0';
+  encMessage[i] = '\0'; //add null terminator to end of our encrypted message
 
 
   return encMessage;

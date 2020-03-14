@@ -22,10 +22,10 @@ int main(int argc, char const *argv[]) {
 
 
   else{
-    int socketFD, portNumber, charsWritten, charsRead;
+    int socketFD, portNumber, charsWritten, charsRead; //given stuff.  Initialize
     struct sockaddr_in serverAddress;
     struct hostent* serverHostInfo;
-    char buffer[1000000];
+    char buffer[1000000]; //initialize buffer to something large for sending and receiving through sockets
 
     // Set up the server address struct
   	memset((char*)&serverAddress, '\0', sizeof(serverAddress)); // Clear out the address struct
@@ -50,7 +50,7 @@ int main(int argc, char const *argv[]) {
   	if (charsWritten < 0) error("CLIENT: ERROR writing to socket");
   	if (charsWritten < strlen(argv[1])) printf("CLIENT: WARNING: Not all data written to socket!\n");
 
-    FILE *fp = fopen(argv[1], "r+");
+    FILE *fp = fopen(argv[1], "r+");//get the length of our message file to know we are getting the right amount of data received
     fseek(fp, 0L, SEEK_END);
     long int lengthOfMessageFile = ftell(fp);
     fclose(fp);
@@ -76,15 +76,15 @@ int main(int argc, char const *argv[]) {
     printf("%s", buffer);
     lengthOfMessageFile = lengthOfMessageFile - strlen(buffer);
 
-    while(lengthOfMessageFile != 1){
+    while(lengthOfMessageFile != 1){ //until the data left to read is 1, keep reading from the socket
       bzero(buffer, sizeof(buffer)); // Clear out the buffer again for reuse
       charsRead = recv(socketFD, buffer, sizeof(buffer), 0); // Read data from the socket, leaving \0 at end
       if (charsRead < 0) error("CLIENT: ERROR reading from socket");
       lengthOfMessageFile = lengthOfMessageFile - strlen(buffer);
-      printf("%s", buffer);
+      printf("%s", buffer); //print off buffer before it resets
     }
 
-    printf("\n");
+    printf("\n");//print new line at the end for '>' into files
     fflush(stdout);
 
     close(socketFD); // Close the socket

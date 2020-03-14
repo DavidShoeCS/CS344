@@ -51,7 +51,7 @@ int main(int argc, char const *argv[]) {
 
 
     FILE *fp = fopen(argv[1], "r+");
-    fseek(fp, 0L, SEEK_END);
+    fseek(fp, 0L, SEEK_END); //get the size of the length of message to then compare what we received through the socket vs what we need
     long int lengthOfMessageFile = ftell(fp);
     fclose(fp);
 
@@ -84,20 +84,20 @@ int main(int argc, char const *argv[]) {
     charsRead = recv(socketFD, buffer, sizeof(buffer), 0); // Read data from the socket, leaving \0 at end
     if (charsRead < 0) error("CLIENT: ERROR reading from socket");
     printf("%s", buffer);
-    lengthOfMessageFile = lengthOfMessageFile - strlen(buffer);
+    lengthOfMessageFile = lengthOfMessageFile - strlen(buffer); //update the length of the message we need to receive from the socket
 
 
-    while(lengthOfMessageFile != 1 && strlen(buffer)>1){
+    while(lengthOfMessageFile != 1 && strlen(buffer)>1){ //while there is still data to be read, read from socket
       bzero(buffer, sizeof(buffer)); // Clear out the buffer again for reuse
       charsRead = recv(socketFD, buffer, sizeof(buffer), 0); // Read data from the socket, leaving \0 at end
       if (charsRead < 0) error("CLIENT: ERROR reading from socket");
-      lengthOfMessageFile = lengthOfMessageFile - strlen(buffer);
+      lengthOfMessageFile = lengthOfMessageFile - strlen(buffer); //update the amount of data to still be read
       printf("%s", buffer);
     }
-    if(strlen(buffer)!=0){
+    if(strlen(buffer)!=0){ //only print new line if we dont have an empty buffer.  Fixes error of getting 1 byte in ciphertext5 test case
       printf("\n");
     }
-    fflush(stdout);
+    fflush(stdout); //flush stdout to avoid problems
 
     close(socketFD); // Close the socket
 
