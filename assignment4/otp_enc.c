@@ -71,14 +71,6 @@ int main(int argc, char const *argv[]) {
 
 
 
-
-
-
-
-
-    //long int lengthOfMessageFile
-
-
     // Get return message from server
     bzero(buffer, sizeof(buffer)); // Clear out the buffer again for reuse
     charsRead = recv(socketFD, buffer, sizeof(buffer), 0); // Read data from the socket, leaving \0 at end

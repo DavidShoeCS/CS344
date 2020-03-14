@@ -119,7 +119,7 @@ char *encryptMessage(char listOfChars[], char *key, char *message){
     }
   }
 
-  if(countHelp != mLength){ //if we found
+  if(countHelp == 0){ //if we found
     error("ERROR: bad character found");
   }
 
@@ -166,8 +166,7 @@ char *encryptMessage(char listOfChars[], char *key, char *message){
 char *readMessageFile(char *myFile){
 
   char* str;//intitalize variable
-
-  str = malloc(100000 * sizeof(char));
+  str = malloc(100000 * sizeof(char)); //allocate space for the string to get rid of local memory warnings
 
   FILE *file = fopen(myFile, "r+"); //open the file we want
 
