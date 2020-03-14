@@ -19,8 +19,6 @@ int main(int argc, char const *argv[]) {
     fprintf(stderr,"USAGE: %s textFile port\n", argv[0]);
     exit(0);
    }
-
-
   else{
     int socketFD, portNumber, charsWritten, charsRead; //given stuff.  Initialize
     struct sockaddr_in serverAddress;
@@ -61,7 +59,6 @@ int main(int argc, char const *argv[]) {
     charsRead = recv(socketFD, buffer, sizeof(buffer) - 1, 0); // Read data from the socket, leaving \0 at end
     if (charsRead < 0) error("CLIENT: ERROR reading from socket");
 
-    //printf("lengthOFMESSgeATSTART->%d\n",lengthOfMessageFile);
     // Send message to server
     //send key file name
     charsWritten = send(socketFD, argv[2], strlen(argv[2]), 0); // Write to the server
@@ -89,11 +86,7 @@ int main(int argc, char const *argv[]) {
 
     close(socketFD); // Close the socket
 
-
   }
-
-
-
 
   return 0;
 }

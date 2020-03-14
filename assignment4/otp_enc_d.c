@@ -40,10 +40,7 @@ int main(int argc, char const *argv[]) {
     error("ERROR on binding");
   listen(listenSocketFD, 5); // Flip the socket on - it can now receive up to 5 connections
 
-
-
-  while(1){
-
+  while(1){ //keeps the daemon available after port/socket was used
 
     // Accept a connection, blocking if one is not available until one connects
     sizeOfClientInfo = sizeof(clientAddress); // Get the size of the address for the client that will connect
@@ -74,7 +71,6 @@ int main(int argc, char const *argv[]) {
       charsRead = send(establishedConnectionFD, "I am the server, and I got your file", 39, 0); // Send success back
       if (charsRead < 0) error("ERROR writing to socket");
 
-
       // Get the message from the client and display it
       bzero(buffer2, 100000);
       charsRead = recv(establishedConnectionFD, buffer2, 99000, 0); // Read the client's message from the socket
@@ -84,7 +80,6 @@ int main(int argc, char const *argv[]) {
       //strdup so we dont point to something that will change
       char *myKey = strdup(readMessageFile(buffer2)); /*read from file and store into variable that we will use later*/
 
-
       // Send a Success message back to the client
       // charsRead = send(establishedConnectionFD, encryptMessage(listOfChars, myKey, myMessageB), strlen(encryptMessage(listOfChars, myKey, myMessageB)), 0); // Send success back
       // if (charsRead < 0) error("ERROR writing to socket");
@@ -93,7 +88,6 @@ int main(int argc, char const *argv[]) {
 
     }
     close(establishedConnectionFD); // Close the existing socket which is connected to the client
-
   }
 
   close(listenSocketFD); // Close the listening socket
@@ -118,7 +112,7 @@ char *encryptMessage(char listOfChars[], char *key, char *message){
       }
     }
   }
-  
+
   //if the counter doesn't match our message length, we know one or more of the characters were bad
   if(countHelp != mLength-1){ //if did not find any good characters, throw error to user
     error("ERROR: bad character found in plaintext");
@@ -161,8 +155,6 @@ char *encryptMessage(char listOfChars[], char *key, char *message){
   return encMessage;
 }
 
-
-
 //read and put the message from a file into a variable
 char *readMessageFile(char *myFile){
 
@@ -179,7 +171,6 @@ char *readMessageFile(char *myFile){
     fgets(str, 100000, file); //read file line
 
   }
-  fclose(file);
+  fclose(file); //close the file we were in
   return str;
-
 }

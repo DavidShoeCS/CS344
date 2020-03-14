@@ -18,8 +18,6 @@ int main(int argc, char const *argv[]) {
     fprintf(stderr,"USAGE: %s textFile port\n", argv[0]);
     exit(0);
    }
-
-
   else{
     int socketFD, portNumber, charsWritten, charsRead;
     struct sockaddr_in serverAddress;
@@ -61,15 +59,10 @@ int main(int argc, char const *argv[]) {
     charsRead = recv(socketFD, buffer, sizeof(buffer) - 1, 0); // Read data from the socket, leaving \0 at end
     if (charsRead < 0) error("CLIENT: ERROR reading from socket");
 
-
-
-
     // Send message to server
     charsWritten = send(socketFD, argv[2], strlen(argv[2]), 0); // Write to the server
     if (charsWritten < 0) error("CLIENT: ERROR writing to socket");
     if (charsWritten < strlen(argv[2])) fprintf(stderr, "CLIENT: WARNING: Not all data written to socket!\n");
-
-
 
     // Get return message from server
     bzero(buffer, sizeof(buffer)); // Clear out the buffer again for reuse

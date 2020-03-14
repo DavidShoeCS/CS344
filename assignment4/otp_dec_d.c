@@ -8,7 +8,6 @@
 
 void error(const char *msg) { perror(msg); exit(1); } // Error function used for reporting issues
 
-
 char *readMessageFile(char *myFile);
 char *decryptMessage(char listOfChars[], char key[], char message[]);
 
@@ -38,12 +37,7 @@ int main(int argc, char const *argv[]) {
     error("ERROR on binding");
   listen(listenSocketFD, 5); // Flip the socket on - it can now receive up to 5 connections
 
-
-
-
-
-  while(1){
-
+  while(1){ //keeps the daemon online after the port/socket was used
 
     // Accept a connection, blocking if one is not available until one connects
     sizeOfClientInfo = sizeof(clientAddress); // Get the size of the address for the client that will connect
@@ -66,7 +60,6 @@ int main(int argc, char const *argv[]) {
       char *listOfChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ ";
 
       char *myMessageE = strdup(readMessageFile(buffer)); /*read from file and store into variable that we will use later*/
-
 
       // Send a Success message back to the client
       charsRead = send(establishedConnectionFD, "I am the server, and I got your file", 39, 0); // Send success back
@@ -135,8 +128,6 @@ char *decryptMessage(char listOfChars[], char *key, char *encMessage){
   decMessage[i] = '\0'; //add null terminator to the end of decrypted message
   return decMessage;
 }
-
-
 
 //helper to read and put the message from a file into a variable
 char *readMessageFile(char *myFile){
