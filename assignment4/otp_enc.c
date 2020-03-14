@@ -94,7 +94,7 @@ int main(int argc, char const *argv[]) {
       lengthOfMessageFile = lengthOfMessageFile - strlen(buffer);
       printf("%s", buffer);
     }
-    if(strlen(buffer)!=0){
+    if(strlen(buffer)!=1){
       printf("\n");
     }
     fflush(stdout);
