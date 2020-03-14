@@ -94,8 +94,9 @@ int main(int argc, char const *argv[]) {
       lengthOfMessageFile = lengthOfMessageFile - strlen(buffer);
       printf("%s", buffer);
     }
-
-    printf("\n");
+    if(strlen(buffer)!=0){
+      printf("\n");
+    }
     fflush(stdout);
 
     close(socketFD); // Close the socket
