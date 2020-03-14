@@ -104,23 +104,23 @@ int main(int argc, char const *argv[]) {
 char *encryptMessage(char listOfChars[], char *key, char *message){
   int mLength = strlen(message); //length of the message to use
   char* encMessage;
-  int keyLength = strlen(key);
+  int keyLength = strlen(key);//get the length of our key array we passed in to use for looping
   int messageNumArray[mLength+1]; //set number arrays that we will use to store indexes for listOfChars
   int keyNumArray[mLength+1];
   int encodedMessageNumArray[mLength+1];
   int i, j, countHelp=0;
 
-
+  //this loop tells us if we found bad characters in our plaintext file
   for(i=0; i<mLength; i++){
     for(j=0; j<strlen(listOfChars); j++){
-      if(message[i] == listOfChars[j]){
+      if(message[i] == listOfChars[j]){ //if the character is a good character, update countHelp
         countHelp++;
       }
     }
   }
 
-  if(countHelp == 0){ //if we found
-    error("ERROR: bad character found");
+  if(countHelp < mLength){ //if did not find any good characters, throw error to user
+    error("ERROR: bad character found in plaintext");
   }
 
   encMessage = malloc(1000000 * sizeof(char)); //allocate space for encrypted message
