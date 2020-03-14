@@ -25,7 +25,7 @@ int main(int argc, char const *argv[]) {
     int socketFD, portNumber, charsWritten, charsRead;
     struct sockaddr_in serverAddress;
     struct hostent* serverHostInfo;
-    char buffer[256];
+    char buffer[1000000];
 
     // Set up the server address struct
   	memset((char*)&serverAddress, '\0', sizeof(serverAddress)); // Clear out the address struct
@@ -50,27 +50,42 @@ int main(int argc, char const *argv[]) {
   	if (charsWritten < 0) error("CLIENT: ERROR writing to socket");
   	if (charsWritten < strlen(argv[1])) printf("CLIENT: WARNING: Not all data written to socket!\n");
 
+    FILE *fp = fopen(argv[1], "r+");
+    fseek(fp, 0L, SEEK_END);
+    long int lengthOfMessageFile = ftell(fp);
+    fclose(fp);
+
     // Get return message from server
     //if sending file was a success, get message
     memset(buffer, '\0', sizeof(buffer)); // Clear out the buffer again for reuse
     charsRead = recv(socketFD, buffer, sizeof(buffer) - 1, 0); // Read data from the socket, leaving \0 at end
     if (charsRead < 0) error("CLIENT: ERROR reading from socket");
 
-
+    //printf("lengthOFMESSgeATSTART->%d\n",lengthOfMessageFile);
     // Send message to server
     //send key file name
     charsWritten = send(socketFD, argv[2], strlen(argv[2]), 0); // Write to the server
     if (charsWritten < 0) error("CLIENT: ERROR writing to socket");
     if (charsWritten < strlen(argv[2])) printf("CLIENT: WARNING: Not all data written to socket!\n");
 
+
     // Get return message from server
-    //if daemon got key file name, success
-    memset(buffer, '\0', sizeof(buffer)); // Clear out the buffer again for reuse
-    charsRead = recv(socketFD, buffer, sizeof(buffer) - 1, 0); // Read data from the socket, leaving \0 at end
-    
-    printf("%s\n",buffer);
+    bzero(buffer, sizeof(buffer)); // Clear out the buffer again for reuse
+    charsRead = recv(socketFD, buffer, sizeof(buffer), 0); // Read data from the socket, leaving \0 at end
+    if (charsRead < 0) error("CLIENT: ERROR reading from socket");
+    printf("%s", buffer);
+    lengthOfMessageFile = lengthOfMessageFile - strlen(buffer);
 
+    while(lengthOfMessageFile != 1){
+      bzero(buffer, sizeof(buffer)); // Clear out the buffer again for reuse
+      charsRead = recv(socketFD, buffer, sizeof(buffer), 0); // Read data from the socket, leaving \0 at end
+      if (charsRead < 0) error("CLIENT: ERROR reading from socket");
+      lengthOfMessageFile = lengthOfMessageFile - strlen(buffer);
+      printf("%s", buffer);
+    }
 
+    printf("\n");
+    fflush(stdout);
 
     close(socketFD); // Close the socket
 
