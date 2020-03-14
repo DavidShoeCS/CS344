@@ -118,8 +118,9 @@ char *encryptMessage(char listOfChars[], char *key, char *message){
       }
     }
   }
-
-  if(countHelp < mLength){ //if did not find any good characters, throw error to user
+  
+  //if the counter doesn't match our message length, we know one or more of the characters were bad
+  if(countHelp != mLength-1){ //if did not find any good characters, throw error to user
     error("ERROR: bad character found in plaintext");
   }
 
