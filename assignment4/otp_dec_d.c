@@ -8,15 +8,15 @@
 
 void error(const char *msg) { perror(msg); exit(1); } // Error function used for reporting issues
 
-char *readMessageFile(char *myFile);
+
 char *decryptMessage(char listOfChars[], char key[], char message[]);
 
 int main(int argc, char const *argv[]) {
 
   int listenSocketFD, establishedConnectionFD, portNumber, charsRead; //set up socket numbers and ports
   socklen_t sizeOfClientInfo;
-  char buffer[100000]; //initalize buffers to large for sending/reveiving data through sockets
-  char buffer2[100000];
+  char buffer[1000000]; //initalize buffers to large for sending/reveiving data through sockets
+  char buffer2[1000000];
   struct sockaddr_in serverAddress, clientAddress;
 
   if (argc < 2) { fprintf(stderr,"USAGE: %s port\n", argv[0]); exit(1); } // Check usage & args
@@ -52,25 +52,25 @@ int main(int argc, char const *argv[]) {
     if(newPID == 0){ //if pid successfully creates
 
       // Get the message from the client and display it
-      //get file name
-      memset(buffer, '\0', 256);
-      charsRead = recv(establishedConnectionFD, buffer, 255, 0); // Read the client's message from the socket
+      //get message
+      bzero(buffer, 100000);
+      charsRead = recv(establishedConnectionFD, buffer, 99000, 0); // Read the client's message from the socket
       if (charsRead < 0) error("ERROR reading from socket");
 
       char *listOfChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ ";
 
-      char *myMessageE = strdup(readMessageFile(buffer)); /*read from file and store into variable that we will use later*/
+      char *myMessageE = strdup(buffer); /*read from file and store into variable that we will use later*/
 
       // Send a Success message back to the client
       charsRead = send(establishedConnectionFD, "I am the server, and I got your file", 39, 0); // Send success back
       if (charsRead < 0) error("ERROR writing to socket");
 
       // Get the message from the client and display it
-      memset(buffer2, '\0', 256);
-      charsRead = recv(establishedConnectionFD, buffer2, 255, 0); // Read the client's message from the socket
+      bzero(buffer2, 100000);
+      charsRead = recv(establishedConnectionFD, buffer2, 99000, 0); // Read the client's message from the socket
       if (charsRead < 0) error("ERROR reading from socket");
       //strdup so we dont point to something that will change
-      char *myKey = strdup(readMessageFile(buffer2)); /*read from file and store into variable that we will use later*/
+      char *myKey = strdup(buffer2); /*read from file and store into variable that we will use later*/
 
       // Send a Success message back to the client
       charsRead = send(establishedConnectionFD, decryptMessage(listOfChars, myKey, myMessageE), strlen(myMessageE), 0); // Send success back
@@ -127,26 +127,4 @@ char *decryptMessage(char listOfChars[], char *key, char *encMessage){
 
   decMessage[i] = '\0'; //add null terminator to the end of decrypted message
   return decMessage;
-}
-
-//helper to read and put the message from a file into a variable
-char *readMessageFile(char *myFile){
-
-  char* str;//intitalize variable
-
-  str = malloc(100000 * sizeof(char));
-
-  FILE *file = fopen(myFile, "r+"); //open the file we want
-
-  if(file == NULL){
-    perror("error opening file"); //fails
-    exit(0);
-  }
-  else{
-    fgets(str, 100000, file); //read file line
-
-  }
-  fclose(file);
-  return str;
-
 }

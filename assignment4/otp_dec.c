@@ -8,8 +8,10 @@
 #include <netdb.h>
 
 void error(const char *msg) { perror(msg); exit(0); } // Error function used for reporting issues
+char *readMessageFile(char *myFile);
 
-int main(int argc, char const *argv[]) {
+
+int main(int argc, char *argv[]) {
 
   //read from keygen file
   //read from given text file, store into variable
@@ -42,28 +44,38 @@ int main(int argc, char const *argv[]) {
     if (connect(socketFD, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) // Connect socket to address
       error("CLIENT: ERROR connecting");
 
+
+
+    char *originalMessage = strdup(readMessageFile(argv[1]));
+
     // Send message to server
     //send file name to daemon
-  	charsWritten = send(socketFD, argv[1], strlen(argv[1]), 0); // Write to the server
+  	charsWritten = send(socketFD, originalMessage, strlen(originalMessage), 0); // Write to the server
   	if (charsWritten < 0) error("CLIENT: ERROR writing to socket");
-  	if (charsWritten < strlen(argv[1])) printf("CLIENT: WARNING: Not all data written to socket!\n");
+  	if (charsWritten < strlen(originalMessage)) printf("CLIENT: WARNING: Not all data written to socket!\n");
 
     FILE *fp = fopen(argv[1], "r+");//get the length of our message file to know we are getting the right amount of data received
     fseek(fp, 0L, SEEK_END);
     long int lengthOfMessageFile = ftell(fp);
     fclose(fp);
 
+
+
+
+
+
     // Get return message from server
     //if sending file was a success, get message
-    memset(buffer, '\0', sizeof(buffer)); // Clear out the buffer again for reuse
+    bzero(buffer, sizeof(buffer)); // Clear out the buffer again for reuse
     charsRead = recv(socketFD, buffer, sizeof(buffer) - 1, 0); // Read data from the socket, leaving \0 at end
     if (charsRead < 0) error("CLIENT: ERROR reading from socket");
 
+
+    char *theKey = strdup(readMessageFile(argv[2]));
+
     // Send message to server
-    //send key file name
-    charsWritten = send(socketFD, argv[2], strlen(argv[2]), 0); // Write to the server
-    if (charsWritten < 0) error("CLIENT: ERROR writing to socket");
-    if (charsWritten < strlen(argv[2])) printf("CLIENT: WARNING: Not all data written to socket!\n");
+    charsWritten = send(socketFD, theKey, strlen(theKey), 0); // Write to the server
+    if (charsWritten < strlen(theKey)) fprintf(stderr, "CLIENT: WARNING: Not all data written to socket!\n");
 
 
     // Get return message from server
@@ -89,4 +101,26 @@ int main(int argc, char const *argv[]) {
   }
 
   return 0;
+}
+
+//helper to read and put the message from a file into a variable
+char *readMessageFile(char *myFile){
+
+  char* str;//intitalize variable
+
+  str = malloc(100000 * sizeof(char));
+
+  FILE *file = fopen(myFile, "r+"); //open the file we want
+
+  if(file == NULL){
+    perror("error opening file"); //fails
+    exit(0);
+  }
+  else{
+    fgets(str, 100000, file); //read file line
+
+  }
+  fclose(file);
+  return str;
+
 }
