@@ -68,12 +68,12 @@ int main(int argc, char *argv[]) {
     //if sending file was a success, get message
     bzero(buffer, sizeof(buffer)); // Clear out the buffer again for reuse
     charsRead = recv(socketFD, buffer, sizeof(buffer) - 1, 0); // Read data from the socket, leaving \0 at end
-    if (charsRead < 0) error("CLIENT: ERROR reading from socket");
+    if (charsRead < 0) error("CLIENT: ERROR reading from socket1");
 
-
+    //save the contents from file specified by user, then send through socket to server(daemon)
     char *theKey = strdup(readMessageFile(argv[2]));
 
-    // Send message to server
+    // Send MESSAGE to server
     charsWritten = send(socketFD, theKey, strlen(theKey), 0); // Write to the server
     if (charsWritten < strlen(theKey)) fprintf(stderr, "CLIENT: WARNING: Not all data written to socket!\n");
 
@@ -81,14 +81,13 @@ int main(int argc, char *argv[]) {
     // Get return message from server
     bzero(buffer, sizeof(buffer)); // Clear out the buffer again for reuse
     charsRead = recv(socketFD, buffer, sizeof(buffer), 0); // Read data from the socket, leaving \0 at end
-    if (charsRead < 0) error("CLIENT: ERROR reading from socket");
+    if (charsRead < 0) error("CLIENT: ERROR reading from socket burk");
     printf("%s", buffer);
     lengthOfMessageFile = lengthOfMessageFile - strlen(buffer);
 
     while(lengthOfMessageFile != 1){ //until the data left to read is 1, keep reading from the socket
       bzero(buffer, sizeof(buffer)); // Clear out the buffer again for reuse
       charsRead = recv(socketFD, buffer, sizeof(buffer), 0); // Read data from the socket, leaving \0 at end
-      if (charsRead < 0) error("CLIENT: ERROR reading from socket");
       lengthOfMessageFile = lengthOfMessageFile - strlen(buffer);
       printf("%s", buffer); //print off buffer before it resets
     }
