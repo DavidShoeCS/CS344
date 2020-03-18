@@ -70,9 +70,9 @@ int main(int argc, char const *argv[]) {
       charsRead = recv(establishedConnectionFD, buffer2, 99000, 0); // Read the client's message from the socket
       if (charsRead < 0) error("ERROR reading from socket");
       //strdup so we dont point to something that will change
-      char *myKey = strdup(buffer2); /*read from file and store into variable that we will use later*/
+      char *myKey = strdup(buffer2); /*read from file and store into variable that we will use later. THIS IS NOW THE ACTUAL KEY*/
 
-      // Send a Success message back to the client
+      // send the decrypted message back to the client otp_dec
       charsRead = send(establishedConnectionFD, decryptMessage(listOfChars, myKey, myMessageE), strlen(myMessageE), 0); // Send success back
       if (charsRead < 0) error("ERROR writing to socket");
 

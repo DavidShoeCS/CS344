@@ -45,13 +45,13 @@ int main(int argc, char *argv[]) {
       error("CLIENT: ERROR connecting");
 
 
-
+    //store the message to a variable, which we will send to the server (Daemon)
     char *originalMessage = strdup(readMessageFile(argv[1]));
 
     // Send message to server
     //send file name to daemon
   	charsWritten = send(socketFD, originalMessage, strlen(originalMessage), 0); // Write to the server
-  	if (charsWritten < 0) error("CLIENT: ERROR writing to socket");
+  	if (charsWritten < 0) error("CLIENT: ERROR writing to socket->echo");
   	if (charsWritten < strlen(originalMessage)) printf("CLIENT: WARNING: Not all data written to socket!\n");
 
     FILE *fp = fopen(argv[1], "r+");//get the length of our message file to know we are getting the right amount of data received
@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
     //if sending file was a success, get message
     bzero(buffer, sizeof(buffer)); // Clear out the buffer again for reuse
     charsRead = recv(socketFD, buffer, sizeof(buffer) - 1, 0); // Read data from the socket, leaving \0 at end
-    if (charsRead < 0) error("CLIENT: ERROR reading from socket1");
+    if (charsRead < 0) error("CLIENT: ERROR reading from socket->1");
 
     //save the contents from file specified by user, then send through socket to server(daemon)
     char *theKey = strdup(readMessageFile(argv[2]));

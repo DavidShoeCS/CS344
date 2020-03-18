@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
       error("CLIENT: ERROR connecting");
 
 
-
+      //store the message from the file specified by user, to send the actual message to the server (daemon)
     char *originalMessage = strdup(readMessageFile(argv[1]));
 
 
@@ -69,12 +69,12 @@ int main(int argc, char *argv[]) {
     // Get return message from server
     bzero(buffer, sizeof(buffer)); // Clear out the buffer again for reuse
     charsRead = recv(socketFD, buffer, sizeof(buffer) - 1, 0); // Read data from the socket, leaving \0 at end
-    if (charsRead < 0) error("CLIENT: ERROR reading from socketboo");
+    if (charsRead < 0) error("CLIENT: ERROR reading from socket->boo");
 
 
     char *theKey = strdup(readMessageFile(argv[2]));
 
-    // Send message to server
+    // Send the actual key to the daemon now
     charsWritten = send(socketFD, theKey, strlen(theKey), 0); // Write to the server
     if (charsWritten < 0) error("CLIENT: ERROR writingguh to socket");
     if (charsWritten < strlen(theKey)) fprintf(stderr, "CLIENT: WARNING: Not all data written to socket!\n");
@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
     // Get return message from server
     bzero(buffer, sizeof(buffer)); // Clear out the buffer again for reuse
     charsRead = recv(socketFD, buffer, sizeof(buffer), 0); // Read data from the socket, leaving \0 at end
-    if (charsRead < 0) error("CLIENT: ERROR reading from socketreee");
+    if (charsRead < 0) error("CLIENT: ERROR reading from socket->reee");
     printf("%s", buffer);
     lengthOfMessageFile = lengthOfMessageFile - strlen(buffer); //update the length of the message we need to receive from the socket
 
@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
     while(lengthOfMessageFile != 1 && strlen(buffer)>1){ //while there is still data to be read, read from socket
       bzero(buffer, sizeof(buffer)); // Clear out the buffer again for reuse
       charsRead = recv(socketFD, buffer, sizeof(buffer), 0); // Read data from the socket, leaving \0 at end
-      if (charsRead < 0) error("CLIENT: ERROR reading from socketello");
+      if (charsRead < 0) error("CLIENT: ERROR reading from socket->ello");
       lengthOfMessageFile = lengthOfMessageFile - strlen(buffer); //update the amount of data to still be read
       printf("%s", buffer);
     }

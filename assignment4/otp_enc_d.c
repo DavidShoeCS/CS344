@@ -75,10 +75,10 @@ int main(int argc, char const *argv[]) {
       if (charsRead < 0) error("ERROR reading from socket");
 
 
-      //strdup so we dont point to something that will change
+      //strdup so we dont point to something that will change. GET THE ACTUAL KEY NOW
       char *myKey = strdup(buffer2); /*store message into variable that we will use later*/
 
-      // Send a Success message back to the client
+      //now, send the encrypted message back to the client side otp_enc
       int check2;
       check2 = send(establishedConnectionFD, encryptMessage(listOfChars, myKey, myMessageB), strlen(myMessageB), 0);
 
