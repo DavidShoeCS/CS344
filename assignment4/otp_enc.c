@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
 
     // Send the actual key to the daemon now
     charsWritten = send(socketFD, theKey, strlen(theKey), 0); // Write to the server
-    if (charsWritten < 0) error("CLIENT: ERROR writingguh to socket");
+    if (charsWritten < 0) error("send error thing");
     if (charsWritten < strlen(theKey)) fprintf(stderr, "CLIENT: WARNING: Not all data written to socket!\n");
 
 
@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
     // Get return message from server
     bzero(buffer, sizeof(buffer)); // Clear out the buffer again for reuse
     charsRead = recv(socketFD, buffer, sizeof(buffer), 0); // Read data from the socket, leaving \0 at end
-    if (charsRead < 0) error("CLIENT: ERROR reading from socket->reee");
+    if (charsRead < 0) error("");
     printf("%s", buffer);
     lengthOfMessageFile = lengthOfMessageFile - strlen(buffer); //update the length of the message we need to receive from the socket
 
@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
     while(lengthOfMessageFile != 1 && strlen(buffer)>1){ //while there is still data to be read, read from socket
       bzero(buffer, sizeof(buffer)); // Clear out the buffer again for reuse
       charsRead = recv(socketFD, buffer, sizeof(buffer), 0); // Read data from the socket, leaving \0 at end
-      if (charsRead < 0) error("CLIENT: ERROR reading from socket->ello");
+      if (charsRead < 0) error("");
       lengthOfMessageFile = lengthOfMessageFile - strlen(buffer); //update the amount of data to still be read
       printf("%s", buffer);
     }

@@ -1,0 +1,149 @@
+#Initializing - Cleaning up - ignore Operation Not Permitted errors
+#Note: this script requires that the current directory (.) be in your PATH in ~/.bashrc
+
+#-----------------------------------------
+#START OF GRADING SCRIPT
+#keygen 20 > key20
+#5 POINTS: key20 must exist
+key20 exists!
+
+#-----------------------------------------
+#5 POINTS: Number of characters in key20, should be 21:
+21 key20
+
+#-----------------------------------------
+#keygen 70000 > key70000
+#5 POINTS: Number of characters in key70000, should be 70001:
+70001 key70000
+
+#-----------------------------------------
+#otp_enc plaintext1 key20 $encport
+#10 POINTS: Should return error about too-short key
+ERROR KEY LENGTH TOO SHORT
+
+#-----------------------------------------
+#otp_enc plaintext1 key70000 $encport
+#20 POINTS: Should return encrypted version of plaintext1
+LSSMQMSYQKTSLAEXGNAUXEVADKQAYFSZQVPN
+
+#-----------------------------------------
+#otp_enc plaintext1 key70000 $encport > ciphertext1
+#10 POINTS: ciphertext1 must exist
+ciphertext1 exists!
+
+#-----------------------------------------
+#10 POINTS: ciphertext1 must be same number of chars as source
+#wc -m plaintext1
+37 plaintext1
+#Should be same: wc -m ciphertext1
+37 ciphertext1
+
+#-----------------------------------------
+#5 POINTS: ciphertext1 should look encrypted
+LSSMQMSYQKTSLAEXGNAUXEVADKQAYFSZQVPN
+
+#-----------------------------------------
+#otp_dec ciphertext1 key70000 $encport
+#5 POINTS: Should fail giving error that otp_dec cannot use otp_enc_d
+DCFZPUGW GYSSBDIEWJOTQQPZRTTPDRYOXQL
+
+#-----------------------------------------
+#20 POINTS: should return decrypted ciphertext1 that matches source
+#cat plaintext1
+THE RED GOOSE FLIES AT MIDNIGHT STOP
+#otp_dec ciphertext1 key70000 $decport
+THE RED GOOSE FLIES AT MIDNIGHT STOP
+
+#-----------------------------------------
+#otp_dec ciphertext1 key70000 $decport > plaintext1_a
+#10 POINTS: plaintext1_a must exist
+plaintext1_a exists!
+
+#-----------------------------------------
+#cmp plaintext1 plaintext1_a
+#5 POINTS: plaintext1 must be the same as plaintext1_a:
+#echo $? should be == 0, which means the cmp succeeded!
+0
+
+#-----------------------------------------
+#20 POINTS: concurrent test of encryption - look for 4 properly-sized ciphertext# files, or 5 where the 5th is 0 bytes
+#5 POINTS: Should be only one error about plaintext5 being bad
+Ten second sleep, your program must complete in this time
+ERROR: bad character found in plaintext: Success
+total 1400
+drwxrwx---. 2 shoemakd upg11488   767 Mar 17 19:44 ./
+drwxrwx---. 7 shoemakd upg11488   191 Mar  4 14:07 ../
+-rw-rw----. 1 shoemakd upg11488    37 Mar 17 19:44 ciphertext1
+-rw-rw----. 1 shoemakd upg11488   317 Mar 17 19:44 ciphertext2
+-rw-rw----. 1 shoemakd upg11488    17 Mar 17 19:44 ciphertext3
+-rw-rw----. 1 shoemakd upg11488 69333 Mar 17 19:44 ciphertext4
+-rw-rw----. 1 shoemakd upg11488     0 Mar 17 19:44 ciphertext5
+-rwxrwx---. 1 shoemakd upg11488    62 Mar 13 22:06 cleanall
+-rwxrwxrwx. 1 shoemakd upg11488   143 Mar 13 20:30 compileall
+-rw-rw----. 1 shoemakd upg11488  6148 Mar 17 12:23 .DS_Store
+-rw-rw----. 1 shoemakd upg11488    21 Mar 17 19:44 key20
+-rw-rw----. 1 shoemakd upg11488 70001 Mar 17 19:44 key70000
+-rwxrwx---. 1 shoemakd upg11488  8816 Mar 17 19:44 keygen
+-rwxrwxrwx. 1 shoemakd upg11488  1055 Mar 13 20:30 keygen.c
+-rwxrwx---. 1 shoemakd upg11488 14048 Mar 17 19:44 otp_dec
+-rwxrwx---. 1 shoemakd upg11488  4697 Mar 17 19:30 otp_dec.c
+-rwxrwx---. 1 shoemakd upg11488 13568 Mar 17 19:44 otp_dec_d
+-rwxrwx---. 1 shoemakd upg11488  5976 Mar 17 18:44 otp_dec_d.c
+-rwxrwx---. 1 shoemakd upg11488 13992 Mar 17 19:44 otp_enc
+-rwxrwx---. 1 shoemakd upg11488  4831 Mar 17 19:43 otp_enc.c
+-rwxrwx---. 1 shoemakd upg11488 13616 Mar 17 19:44 otp_enc_d
+-rwxrwx---. 1 shoemakd upg11488  6119 Mar 17 18:43 otp_enc_d.c
+-rwxrwxrwx. 1 shoemakd upg11488  5080 Mar 13 21:37 p4gradingscript
+-rwxrwxrwx. 1 shoemakd upg11488    37 Mar 13 20:30 plaintext1
+-rwxrwxrwx. 1 shoemakd upg11488   317 Mar 13 20:30 plaintext2
+-rwxrwxrwx. 1 shoemakd upg11488    17 Mar 13 20:30 plaintext3
+-rwxrwxrwx. 1 shoemakd upg11488 69333 Mar 13 20:30 plaintext4
+-rwxrwxrwx. 1 shoemakd upg11488    42 Mar 13 20:30 plaintext5
+-rw-rw----. 1 shoemakd upg11488   205 Mar 17 16:04 README.txt
+-rw-rw----. 1 shoemakd upg11488  2448 Mar 17 19:44 results
+
+#-----------------------------------------
+#15 POINTS: concurrent test of decryption - look for 4 plaintext#_a files that match the plaintext# files
+#Ten second sleep, your program must complete in this time
+total 2048
+drwxrwx---. 2 shoemakd upg11488   887 Mar 17 19:44 ./
+drwxrwx---. 7 shoemakd upg11488   191 Mar  4 14:07 ../
+-rw-rw----. 1 shoemakd upg11488    37 Mar 17 19:44 ciphertext1
+-rw-rw----. 1 shoemakd upg11488   317 Mar 17 19:44 ciphertext2
+-rw-rw----. 1 shoemakd upg11488    17 Mar 17 19:44 ciphertext3
+-rw-rw----. 1 shoemakd upg11488 69333 Mar 17 19:44 ciphertext4
+-rw-rw----. 1 shoemakd upg11488     0 Mar 17 19:44 ciphertext5
+-rwxrwx---. 1 shoemakd upg11488    62 Mar 13 22:06 cleanall
+-rwxrwxrwx. 1 shoemakd upg11488   143 Mar 13 20:30 compileall
+-rw-rw----. 1 shoemakd upg11488  6148 Mar 17 12:23 .DS_Store
+-rw-rw----. 1 shoemakd upg11488    21 Mar 17 19:44 key20
+-rw-rw----. 1 shoemakd upg11488 70001 Mar 17 19:44 key70000
+-rwxrwx---. 1 shoemakd upg11488  8816 Mar 17 19:44 keygen
+-rwxrwxrwx. 1 shoemakd upg11488  1055 Mar 13 20:30 keygen.c
+-rwxrwx---. 1 shoemakd upg11488 14048 Mar 17 19:44 otp_dec
+-rwxrwx---. 1 shoemakd upg11488  4697 Mar 17 19:30 otp_dec.c
+-rwxrwx---. 1 shoemakd upg11488 13568 Mar 17 19:44 otp_dec_d
+-rwxrwx---. 1 shoemakd upg11488  5976 Mar 17 18:44 otp_dec_d.c
+-rwxrwx---. 1 shoemakd upg11488 13992 Mar 17 19:44 otp_enc
+-rwxrwx---. 1 shoemakd upg11488  4831 Mar 17 19:43 otp_enc.c
+-rwxrwx---. 1 shoemakd upg11488 13616 Mar 17 19:44 otp_enc_d
+-rwxrwx---. 1 shoemakd upg11488  6119 Mar 17 18:43 otp_enc_d.c
+-rwxrwxrwx. 1 shoemakd upg11488  5080 Mar 13 21:37 p4gradingscript
+-rwxrwxrwx. 1 shoemakd upg11488    37 Mar 13 20:30 plaintext1
+-rw-rw----. 1 shoemakd upg11488    37 Mar 17 19:44 plaintext1_a
+-rwxrwxrwx. 1 shoemakd upg11488   317 Mar 13 20:30 plaintext2
+-rw-rw----. 1 shoemakd upg11488   317 Mar 17 19:44 plaintext2_a
+-rwxrwxrwx. 1 shoemakd upg11488    17 Mar 13 20:30 plaintext3
+-rw-rw----. 1 shoemakd upg11488    17 Mar 17 19:44 plaintext3_a
+-rwxrwxrwx. 1 shoemakd upg11488 69333 Mar 13 20:30 plaintext4
+-rw-rw----. 1 shoemakd upg11488 69333 Mar 17 19:44 plaintext4_a
+-rwxrwxrwx. 1 shoemakd upg11488    42 Mar 13 20:30 plaintext5
+-rw-rw----. 1 shoemakd upg11488   205 Mar 17 16:04 README.txt
+-rw-rw----. 1 shoemakd upg11488  4496 Mar 17 19:44 results
+
+#-----------------------------------------
+#Cleaning up - ignore Operation Not Permitted errors
+./p4gradingscript: line 137: 33658 Terminated              otp_enc_d $encport
+./p4gradingscript: line 137: 33659 Terminated              otp_dec_d $decport
+
+#SCRIPT COMPLETE
